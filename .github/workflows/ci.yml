@@ -1,0 +1,41 @@
+# Phase 0 CI: a single minimal config (Ubuntu 22.04 / GCC 12), per PROJECT_PLAN.
+# The full OS x compiler x sanitizer matrix from CLAUDE.md §10 is added in a
+# later phase, once there's enough code to make it meaningful.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref to keep the queue (and the <90s brag) lean.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: ubuntu-22.04 / gcc-12 / Debug
+    runs-on: ubuntu-22.04
+    env:
+      CC: gcc-12
+      CXX: g++-12
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential g++-12 cmake
+
+      - name: Configure
+        run: cmake --preset=debug
+
+      - name: Build
+        run: cmake --build build/debug -j
+
+      - name: Test
+        run: ctest --preset=debug --output-on-failure

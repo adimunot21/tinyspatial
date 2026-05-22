@@ -1,0 +1,44 @@
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.dylib
+compile_commands.json
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.egg-info/
+.venv/
+dist/
+wheelhouse/
+
+# ML checkpoints (kept for parity with global conventions; unused so far)
+checkpoints/*.pt
+
+# Editor / OS
+.DS_Store
+.env
+*.log
+.cache/
+
+# Claude Code local (machine-specific) settings
+.claude/settings.local.json
+
+# Large robot assets: meshes are NOT tracked, but the small fixture URDFs
+# under data/robots/*.urdf ARE tracked because the test suite depends on them.
+data/robots/**/meshes/
+*.stl
+*.dae
+*.obj
+
+# mkdocs site output (built into build/course_site via course/mkdocs.yml)
+course/site/
+build/course_site/

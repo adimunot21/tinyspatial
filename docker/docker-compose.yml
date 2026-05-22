@@ -1,0 +1,20 @@
+# Convenience compose file for local Docker-based development.
+# See docker/README.md for usage.
+services:
+  # Build + test the standalone C++ library.
+  builder:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: builder
+    image: tinyspatial:builder
+
+  # Pinocchio parity oracle (Phase 0: stub stage).
+  validation-oracle:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: validation-oracle
+    image: tinyspatial:validation-oracle
+    volumes:
+      - ..:/work

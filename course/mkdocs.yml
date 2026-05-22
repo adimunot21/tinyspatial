@@ -1,0 +1,63 @@
+# mkdocs-material config for the tinyspatial course.
+# Build/serve from the repo root:  mkdocs serve -f course/mkdocs.yml
+site_name: tinyspatial course
+site_description: Learn rigid-body kinematics and dynamics by reading a real C++ library.
+site_url: https://adimunot21.github.io/tinyspatial/
+repo_url: https://github.com/adimunot21/tinyspatial
+repo_name: adimunot21/tinyspatial
+edit_uri: edit/main/course/
+
+# The course markdown lives alongside this config, so the docs root is here.
+# site_dir must live OUTSIDE docs_dir; we build into the (gitignored) build/.
+docs_dir: .
+site_dir: ../build/course_site
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  # MathJax-style inline/block math (CLAUDE.md / course rules use $...$).
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - admonition
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Only published pages are listed. New chapters get added here as they land.
+nav:
+  - Home: README.md
+  - "0 · Welcome":
+      - Overview: 00_welcome/README.md
+      - What is a robot?: 00_welcome/01_what_is_a_robot.md
+      - Set up your machine: 00_welcome/02_setup_your_machine.md
+
+# Don't fail the local build over not-yet-written cross-links between chapters.
+validation:
+  links:
+    absolute_links: ignore
+    unrecognized_links: ignore
