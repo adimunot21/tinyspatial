@@ -21,6 +21,7 @@ endif()
 
 # -- Options --
 option(TINYSPATIAL_BUILD_TESTS "Build unit tests" ${TINYSPATIAL_STANDALONE})
+option(TINYSPATIAL_BUILD_EXAMPLES "Build the standalone C++ examples" ${TINYSPATIAL_STANDALONE})
 option(TINYSPATIAL_BUILD_BENCHMARKS "Build Google Benchmark perf tests" OFF)
 option(TINYSPATIAL_BUILD_VALIDATION "Build the Pinocchio parity validation suite" OFF)
 option(TINYSPATIAL_BUILD_PYTHON "Build the nanobind Python bindings" OFF)
@@ -67,4 +68,8 @@ endif()
 if(TINYSPATIAL_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
+endif()
+
+if(TINYSPATIAL_BUILD_EXAMPLES)
+  add_subdirectory(src/examples)
 endif()
