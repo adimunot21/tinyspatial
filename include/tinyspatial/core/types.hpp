@@ -21,6 +21,9 @@ using Scalar = double;
 using Vector3 = Eigen::Matrix<Scalar, 3, 1>;
 using Matrix3 = Eigen::Matrix<Scalar, 3, 3>;
 
+/// 4×4 homogeneous transform matrix (SE(3) in homogeneous coordinates).
+using Matrix4 = Eigen::Matrix<Scalar, 4, 4>;
+
 /// Spatial 6-vector. ANGULAR-FIRST: indices 0..2 are angular (ω), 3..5 are
 /// linear (v). This follows Featherstone (2008) and diverges from Pinocchio's
 /// linear-first ordering — the Pinocchio validation suite converts at the
