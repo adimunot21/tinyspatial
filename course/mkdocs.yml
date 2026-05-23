@@ -55,6 +55,23 @@ nav:
       - Overview: 00_welcome/README.md
       - What is a robot?: 00_welcome/01_what_is_a_robot.md
       - Set up your machine: 00_welcome/02_setup_your_machine.md
+  - "3 · Rotations & transforms":
+      - Overview: 03_rotations_and_transforms/README.md
+      - What is a rotation?: 03_rotations_and_transforms/01_what_is_a_rotation.md
+      - Rotation matrices: 03_rotations_and_transforms/02_rotation_matrices.md
+      - Axis–angle: 03_rotations_and_transforms/03_axis_angle.md
+      - Quaternions: 03_rotations_and_transforms/04_quaternions.md
+      - Rigid transforms: 03_rotations_and_transforms/05_rigid_transforms.md
+      - Exercises: 03_rotations_and_transforms/exercises.md
+  - "4 · Lie groups":
+      - Overview: 04_lie_groups/README.md
+      - The manifold idea: 04_lie_groups/01_the_manifold_idea.md
+      - The tangent space: 04_lie_groups/02_tangent_space.md
+      - exp and log: 04_lie_groups/03_exp_and_log.md
+      - Jacobians: 04_lie_groups/04_jacobians.md
+      - The adjoint: 04_lie_groups/05_the_adjoint.md
+      - Why robots need this: 04_lie_groups/06_why_robots_need_this.md
+      - Exercises: 04_lie_groups/exercises.md
 
 # Don't fail the local build over not-yet-written cross-links between chapters.
 validation:
