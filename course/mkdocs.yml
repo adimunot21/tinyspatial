@@ -80,6 +80,21 @@ nav:
       - Spatial inertia: 05_spatial_algebra/04_spatial_inertia.md
       - How Featherstone thinks: 05_spatial_algebra/05_how_featherstone_thinks.md
       - Exercises: 05_spatial_algebra/exercises.md
+  - "6 · Kinematic trees":
+      - Overview: 06_kinematic_trees/README.md
+      - Links and joints: 06_kinematic_trees/01_links_and_joints.md
+      - The tree: 06_kinematic_trees/02_the_tree.md
+      - Joint variants: 06_kinematic_trees/03_joint_variants.md
+      - Model and Data: 06_kinematic_trees/04_model_and_data.md
+      - Exercises: 06_kinematic_trees/exercises.md
+  - "7 · URDF robot models":
+      - Overview: 07_urdf_robot_models/README.md
+      - XML basics: 07_urdf_robot_models/01_xml_basics.md
+      - URDF tags: 07_urdf_robot_models/02_urdf_tags.md
+      - Inertias: 07_urdf_robot_models/03_inertias.md
+      - The loader: 07_urdf_robot_models/04_the_loader.md
+      - Exploring the robots: 07_urdf_robot_models/05_exploring_the_robots.md
+      - Exercises: 07_urdf_robot_models/exercises.md
 
 # Don't fail the local build over not-yet-written cross-links between chapters.
 validation:

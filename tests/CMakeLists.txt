@@ -32,3 +32,17 @@ tinyspatial_add_test(test_se3 unit/liegroup/test_se3.cpp)
 tinyspatial_add_test(test_cross unit/spatial/test_cross.cpp)
 tinyspatial_add_test(test_motion_force unit/spatial/test_motion_force.cpp)
 tinyspatial_add_test(test_inertia unit/spatial/test_inertia.cpp)
+tinyspatial_add_test(test_joint unit/model/test_joint.cpp)
+tinyspatial_add_test(test_model unit/model/test_model.cpp)
+
+# URDF tests need the (non-template) loader implementation + fixture path.
+if(TARGET tinyspatial_urdf)
+  tinyspatial_add_test(test_urdf_loader unit/urdf/test_urdf_loader.cpp)
+  tinyspatial_add_test(test_urdf_placements unit/urdf/test_urdf_placements.cpp)
+  tinyspatial_add_test(test_urdf_fuzz unit/urdf/test_urdf_fuzz.cpp)
+  foreach(t test_urdf_loader test_urdf_placements test_urdf_fuzz)
+    target_link_libraries(${t} PRIVATE tinyspatial_urdf)
+    target_compile_definitions(${t} PRIVATE
+      "TINYSPATIAL_TEST_FIXTURE_DIR=\"${CMAKE_SOURCE_DIR}/data/robots\"")
+  endforeach()
+endif()
