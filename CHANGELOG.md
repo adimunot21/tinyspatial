@@ -8,6 +8,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Phase 3 — Kinematic tree + URDF loader.**
+  - `model/joint.hpp`: `Joint = std::variant<JointFixed, JointRevolute,
+    JointPrismatic, JointFloating>`, with `nq()/nv()/joint_transform()` free
+    functions dispatching via `std::visit`.
+  - `model/model.hpp`: `Model` (joints + parents + placements + inertias +
+    flat `idx_q`/`idx_v` slices) with `add_joint()`/`find_joint()` builders,
+    plus `Data` per-configuration scratchpad (pose_in_parent / pose_in_world /
+    v / a / f, sized to the Model at construction).
+  - `urdf/urdf_loader.hpp` + `src/urdf/urdf_loader.cpp`: pure-URDF subset
+    loader via tinyxml2 (three-pass: links → joints → BFS assembly). Throws
+    typed `UrdfParseError`; ignores `<visual>`/`<collision>`/etc.
+  - Fixture URDFs under `data/robots/`: `simple_arm` (test fixture),
+    `franka_fr3` (synthetic 7-DOF), `ur5e` (synthetic 6-DOF), `so_arm101`
+    (synthetic 5-DOF + fixed gripper). All clearly marked synthetic; Phase 4
+    swap plan documented in `data/robots/README.md`.
+  - 26 new tests (73 total green, no compiler warnings, clang-tidy clean):
+    each joint variant's transform, model indexing for mixed-size joints,
+    URDF round-trips for all four fixtures, q=0 placement chain matches a
+    hand-computed reference, 1000-iteration fuzz under ASan+UBSan that never
+    crashes.
+  - Course chapters 06 (kinematic trees, 4 sub-chapters) and 07 (URDF, 5
+    sub-chapters), each with exercises and "Where this lives" tables.
+
 - **Phase 2 — Spatial algebra.**
   - `spatial/motion.hpp`, `spatial/force.hpp`: typed `Motion` (twist) and
     `Force` (wrench), angular-first; SE(3) acts on each via `operator*`
