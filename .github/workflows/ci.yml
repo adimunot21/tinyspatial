@@ -22,7 +22,7 @@ jobs:
       CXX: g++-12
     steps:
       - name: Checkout (with submodules)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
