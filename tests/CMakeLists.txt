@@ -38,7 +38,11 @@ tinyspatial_add_test(test_model unit/model/test_model.cpp)
 # URDF tests need the (non-template) loader implementation + fixture path.
 if(TARGET tinyspatial_urdf)
   tinyspatial_add_test(test_urdf_loader unit/urdf/test_urdf_loader.cpp)
-  target_link_libraries(test_urdf_loader PRIVATE tinyspatial_urdf)
-  target_compile_definitions(test_urdf_loader PRIVATE
-    "TINYSPATIAL_TEST_FIXTURE_DIR=\"${CMAKE_SOURCE_DIR}/data/robots\"")
+  tinyspatial_add_test(test_urdf_placements unit/urdf/test_urdf_placements.cpp)
+  tinyspatial_add_test(test_urdf_fuzz unit/urdf/test_urdf_fuzz.cpp)
+  foreach(t test_urdf_loader test_urdf_placements test_urdf_fuzz)
+    target_link_libraries(${t} PRIVATE tinyspatial_urdf)
+    target_compile_definitions(${t} PRIVATE
+      "TINYSPATIAL_TEST_FIXTURE_DIR=\"${CMAKE_SOURCE_DIR}/data/robots\"")
+  endforeach()
 endif()
