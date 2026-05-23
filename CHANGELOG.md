@@ -8,6 +8,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Phase 2 — Spatial algebra.**
+  - `spatial/motion.hpp`, `spatial/force.hpp`: typed `Motion` (twist) and
+    `Force` (wrench), angular-first; SE(3) acts on each via `operator*`
+    (`Ad_T` for motions, `Ad_T^{-T}` for forces).
+  - `spatial/cross.hpp`: typed `cross(Motion, Motion)` and `cross(Motion, Force)`
+    overloads alongside the existing matrix forms.
+  - `spatial/inertia.hpp`: `SpatialInertia` with separable storage (mass / COM /
+    inertia about COM), `matrix6()` for the 6×6 form, composite-body
+    `operator+`, and an SE(3) transform that moves each parameter cleanly.
+  - `spatial/plucker.hpp`: `motion_plucker()` / `force_plucker()` naming the
+    SE(3) adjoint and its dual in Featherstone language.
+  - 22 new tests (47 total green, no compiler warnings, clang-tidy clean):
+    duality of motion/force adjoints, Jacobi identity for the typed cross,
+    kinetic-energy identity for `SpatialInertia`, separable inertia transform
+    agrees with the 6×6 congruence, composite-body linearity, Plücker = adjoint.
+  - `docs/ALGORITHMS.md`: convention reference for the angular-first / body-fixed
+    spatial-algebra layer.
+  - Course chapter 05 (5 sub-chapters + exercises).
+
 - **Phase 1 — Lie groups SO(3) and SE(3).**
   - `core/types.hpp`: concrete `double` algebra aliases (Vector3/6, Matrix3/4/6,
     Quaternion). Spatial 6-vectors are angular-first (ω; v).
