@@ -1,3 +1,4 @@
+#include <array>
 #include <cmath>
 #include <random>
 
@@ -12,7 +13,7 @@ constexpr Scalar kPi = 3.14159265358979323846;
 constexpr Scalar kTight = 1e-12;  // exp/log round-trips
 constexpr Scalar kFd = 1e-7;      // finite-difference Jacobian agreement
 
-void ExpectMatrixNear(const Matrix3& a, const Matrix3& b, Scalar tol) {
+void expect_matrix_near(const Matrix3& a, const Matrix3& b, Scalar tol) {
   EXPECT_LE((a - b).cwiseAbs().maxCoeff(), tol) << "a=\n" << a << "\nb=\n" << b;
 }
 
@@ -22,20 +23,20 @@ class So3Test : public ::testing::Test {
   std::mt19937 gen_{42};
   std::uniform_real_distribution<Scalar> uni_{-1.0, 1.0};
 
-  Vector3 RandomAxis() {
+  Vector3 random_axis() {
     Vector3 v(uni_(gen_), uni_(gen_), uni_(gen_));
     while (v.norm() < 1e-6) {
       v = Vector3(uni_(gen_), uni_(gen_), uni_(gen_));
     }
     return v.normalized();
   }
-  Vector3 RandomOmega(Scalar max_angle) {
+  Vector3 random_omega(Scalar max_angle) {
     const Scalar angle = (uni_(gen_) * 0.5 + 0.5) * max_angle;
-    return RandomAxis() * angle;
+    return random_axis() * angle;
   }
 
   // ∂/∂δ log(exp(ω)⁻¹ · exp(ω+δ)) |_{δ=0}  ==  right Jacobian.
-  Matrix3 NumericalRightJacobian(const Vector3& w) {
+  static Matrix3 numerical_right_jacobian(const Vector3& w) {
     const Scalar h = 1e-5;
     const SO3 r_inv = SO3::exp(w).inverse();
     Matrix3 j;
@@ -50,7 +51,7 @@ class So3Test : public ::testing::Test {
   }
 
   // ∂/∂δ log(exp(ω+δ) · exp(ω)⁻¹) |_{δ=0}  ==  left Jacobian.
-  Matrix3 NumericalLeftJacobian(const Vector3& w) {
+  static Matrix3 numerical_left_jacobian(const Vector3& w) {
     const Scalar h = 1e-5;
     const SO3 r_inv = SO3::exp(w).inverse();
     Matrix3 j;
@@ -76,7 +77,7 @@ TEST(So3Hat, SkewUnskewRoundTrip) {
 
 TEST(So3Basics, IdentityAndAccessors) {
   const SO3 id = SO3::identity();
-  ExpectMatrixNear(id.matrix(), Matrix3::Identity(), kTight);
+  expect_matrix_near(id.matrix(), Matrix3::Identity(), kTight);
   EXPECT_NEAR(id.log().norm(), 0.0, kTight);
 }
 
@@ -88,16 +89,16 @@ TEST(So3Basics, ActMatchesMatrix) {
 
 TEST_F(So3Test, ExpMatchesAngleAxis) {
   for (int i = 0; i < 50; ++i) {
-    const Vector3 axis = RandomAxis();
+    const Vector3 axis = random_axis();
     const Scalar angle = uni_(gen_) * kPi;  // (-π, π)
     const Matrix3 expected = Eigen::AngleAxis<Scalar>(angle, axis).toRotationMatrix();
-    ExpectMatrixNear(SO3::exp(axis * angle).matrix(), expected, 1e-12);
+    expect_matrix_near(SO3::exp(axis * angle).matrix(), expected, 1e-12);
   }
 }
 
 TEST_F(So3Test, LogExpRoundTrip) {
   for (int i = 0; i < 200; ++i) {
-    const Vector3 w = RandomOmega(kPi - 1e-6);  // unique chart away from π
+    const Vector3 w = random_omega(kPi - 1e-6);  // unique chart away from π
     const Vector3 round = SO3::exp(w).log();
     EXPECT_LE((round - w).norm(), kTight) << "w=" << w.transpose();
   }
@@ -105,60 +106,60 @@ TEST_F(So3Test, LogExpRoundTrip) {
 
 TEST_F(So3Test, ExpLogRoundTrip) {
   for (int i = 0; i < 200; ++i) {
-    const SO3 r = SO3::exp(RandomOmega(kPi));
-    ExpectMatrixNear(SO3::exp(r.log()).matrix(), r.matrix(), kTight);
+    const SO3 r = SO3::exp(random_omega(kPi));
+    expect_matrix_near(SO3::exp(r.log()).matrix(), r.matrix(), kTight);
   }
 }
 
 TEST(So3Corner, SmallAngle) {
   const Vector3 w(1e-10, -2e-10, 5e-11);
   EXPECT_LE((SO3::exp(w).log() - w).norm(), kTight);
-  ExpectMatrixNear(SO3::right_jacobian(w), Matrix3::Identity(), 1e-9);
-  ExpectMatrixNear(SO3::left_jacobian(w), Matrix3::Identity(), 1e-9);
+  expect_matrix_near(SO3::right_jacobian(w), Matrix3::Identity(), 1e-9);
+  expect_matrix_near(SO3::left_jacobian(w), Matrix3::Identity(), 1e-9);
 }
 
 TEST(So3Corner, PiAngle) {
   // The hardest case for log: a rotation of exactly π.
-  const Vector3 axes[] = {Vector3::UnitX(), Vector3::UnitY(), Vector3::UnitZ(),
-                          Vector3(1, 1, 1).normalized()};
+  const std::array<Vector3, 4> axes = {Vector3::UnitX(), Vector3::UnitY(), Vector3::UnitZ(),
+                                       Vector3(1, 1, 1).normalized()};
   for (const Vector3& axis : axes) {
     const SO3 r = SO3::exp(axis * kPi);
     EXPECT_NEAR(r.log().norm(), kPi, 1e-9);
-    ExpectMatrixNear(SO3::exp(r.log()).matrix(), r.matrix(), 1e-9);
+    expect_matrix_near(SO3::exp(r.log()).matrix(), r.matrix(), 1e-9);
   }
 }
 
 TEST_F(So3Test, GroupAxioms) {
   for (int i = 0; i < 50; ++i) {
-    const SO3 a = SO3::exp(RandomOmega(kPi));
-    const SO3 b = SO3::exp(RandomOmega(kPi));
-    const SO3 c = SO3::exp(RandomOmega(kPi));
+    const SO3 a = SO3::exp(random_omega(kPi));
+    const SO3 b = SO3::exp(random_omega(kPi));
+    const SO3 c = SO3::exp(random_omega(kPi));
     // Associativity.
-    ExpectMatrixNear(((a * b) * c).matrix(), (a * (b * c)).matrix(), 1e-12);
+    expect_matrix_near(((a * b) * c).matrix(), (a * (b * c)).matrix(), 1e-12);
     // Identity.
-    ExpectMatrixNear((a * SO3::identity()).matrix(), a.matrix(), kTight);
+    expect_matrix_near((a * SO3::identity()).matrix(), a.matrix(), kTight);
     // Inverse.
-    ExpectMatrixNear((a * a.inverse()).matrix(), Matrix3::Identity(), 1e-12);
+    expect_matrix_near((a * a.inverse()).matrix(), Matrix3::Identity(), 1e-12);
   }
 }
 
 TEST_F(So3Test, JacobiansMatchFiniteDifference) {
   for (int i = 0; i < 50; ++i) {
-    const Vector3 w = RandomOmega(2.5);  // well inside the chart
-    ExpectMatrixNear(SO3::right_jacobian(w), NumericalRightJacobian(w), kFd);
-    ExpectMatrixNear(SO3::left_jacobian(w), NumericalLeftJacobian(w), kFd);
+    const Vector3 w = random_omega(2.5);  // well inside the chart
+    expect_matrix_near(SO3::right_jacobian(w), numerical_right_jacobian(w), kFd);
+    expect_matrix_near(SO3::left_jacobian(w), numerical_left_jacobian(w), kFd);
   }
 }
 
 TEST_F(So3Test, JacobianInverses) {
   for (int i = 0; i < 50; ++i) {
-    const Vector3 w = RandomOmega(2.5);
-    ExpectMatrixNear(SO3::right_jacobian(w) * SO3::right_jacobian_inverse(w), Matrix3::Identity(),
-                     1e-10);
-    ExpectMatrixNear(SO3::left_jacobian(w) * SO3::left_jacobian_inverse(w), Matrix3::Identity(),
-                     1e-10);
+    const Vector3 w = random_omega(2.5);
+    expect_matrix_near(SO3::right_jacobian(w) * SO3::right_jacobian_inverse(w), Matrix3::Identity(),
+                       1e-10);
+    expect_matrix_near(SO3::left_jacobian(w) * SO3::left_jacobian_inverse(w), Matrix3::Identity(),
+                       1e-10);
     // Identity Jl(ω) = Jr(ω)ᵀ.
-    ExpectMatrixNear(SO3::left_jacobian(w), SO3::right_jacobian(w).transpose(), 1e-12);
+    expect_matrix_near(SO3::left_jacobian(w), SO3::right_jacobian(w).transpose(), 1e-12);
   }
 }
 

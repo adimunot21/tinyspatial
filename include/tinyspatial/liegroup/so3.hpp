@@ -25,7 +25,7 @@ inline constexpr Scalar kSmallAngle = 1e-3;
 
 /// Hat operator: maps a 3-vector to the skew-symmetric matrix `[v]_×` such that
 /// `[v]_× w = v × w`.
-inline Matrix3 skew(const Eigen::Ref<const Vector3>& v) {
+[[nodiscard]] inline Matrix3 skew(const Eigen::Ref<const Vector3>& v) {
   Matrix3 m;
   // clang-format off
   m <<      Scalar(0), -v.z(),      v.y(),
@@ -36,7 +36,7 @@ inline Matrix3 skew(const Eigen::Ref<const Vector3>& v) {
 }
 
 /// Vee operator: inverse of skew() for a skew-symmetric matrix.
-inline Vector3 unskew(const Eigen::Ref<const Matrix3>& m) {
+[[nodiscard]] inline Vector3 unskew(const Eigen::Ref<const Matrix3>& m) {
   return Vector3(m(2, 1), m(0, 2), m(1, 0));
 }
 
@@ -54,42 +54,42 @@ class SO3 {
       : quat_(canonical(Quaternion(rotation))) {}
 
   /// The identity rotation.
-  static SO3 identity() { return SO3(); }
+  [[nodiscard]] static SO3 identity() { return SO3(); }
 
   /// The underlying unit quaternion (w ≥ 0).
-  const Quaternion& quaternion() const { return quat_; }
+  [[nodiscard]] const Quaternion& quaternion() const { return quat_; }
 
   /// The equivalent 3×3 rotation matrix.
-  Matrix3 matrix() const { return quat_.toRotationMatrix(); }
+  [[nodiscard]] Matrix3 matrix() const { return quat_.toRotationMatrix(); }
 
   /// Group composition: `(*this) ∘ rhs`.
-  SO3 operator*(const SO3& rhs) const { return SO3(quat_ * rhs.quat_); }
+  [[nodiscard]] SO3 operator*(const SO3& rhs) const { return SO3(quat_ * rhs.quat_); }
 
   /// Group inverse (the transpose / conjugate rotation).
-  SO3 inverse() const { return SO3(quat_.conjugate()); }
+  [[nodiscard]] SO3 inverse() const { return SO3(quat_.conjugate()); }
 
   /// Rotate a point: returns `R · p`.
-  Vector3 act(const Eigen::Ref<const Vector3>& p) const { return quat_ * p; }
+  [[nodiscard]] Vector3 act(const Eigen::Ref<const Vector3>& p) const { return quat_ * p; }
 
   /// Exponential map: rotation vector ω (axis·angle) → rotation.
-  static SO3 exp(const Eigen::Ref<const Vector3>& omega);
+  [[nodiscard]] static SO3 exp(const Eigen::Ref<const Vector3>& omega);
 
   /// Logarithm map: rotation → rotation vector ω, with ‖ω‖ ∈ [0, π].
-  Vector3 log() const;
+  [[nodiscard]] Vector3 log() const;
 
   /// Left Jacobian Jl(ω): relates a left-trivialised tangent perturbation to
   /// the change in the rotation vector. `Jl(ω) = Jr(ω)ᵀ = Jr(-ω)`.
-  static Matrix3 left_jacobian(const Eigen::Ref<const Vector3>& omega);
+  [[nodiscard]] static Matrix3 left_jacobian(const Eigen::Ref<const Vector3>& omega);
   /// Right Jacobian Jr(ω).
-  static Matrix3 right_jacobian(const Eigen::Ref<const Vector3>& omega);
+  [[nodiscard]] static Matrix3 right_jacobian(const Eigen::Ref<const Vector3>& omega);
   /// Inverse of the left Jacobian.
-  static Matrix3 left_jacobian_inverse(const Eigen::Ref<const Vector3>& omega);
+  [[nodiscard]] static Matrix3 left_jacobian_inverse(const Eigen::Ref<const Vector3>& omega);
   /// Inverse of the right Jacobian.
-  static Matrix3 right_jacobian_inverse(const Eigen::Ref<const Vector3>& omega);
+  [[nodiscard]] static Matrix3 right_jacobian_inverse(const Eigen::Ref<const Vector3>& omega);
 
  private:
   /// Normalise to a unit quaternion with w ≥ 0 (unique representative, §15).
-  static Quaternion canonical(Quaternion q) {
+  [[nodiscard]] static Quaternion canonical(Quaternion q) {
     q.normalize();
     if (q.w() < Scalar(0)) {
       q.coeffs() *= Scalar(-1);
@@ -124,7 +124,7 @@ inline Vector3 SO3::log() const {
   // q is canonical (unit, w ≥ 0), so n = ‖vec‖ = sin(θ/2) and θ = 2·asin(n).
   const Vector3 vec = quat_.vec();
   const Scalar n = std::min(vec.norm(), Scalar(1));  // clamp float drift
-  Scalar factor;
+  Scalar factor = Scalar(0);
   if (n > kSmallAngle) {
     factor = Scalar(2) * std::asin(n) / n;  // θ / sin(θ/2)
   } else {
@@ -145,8 +145,8 @@ inline Vector3 SO3::log() const {
 inline Matrix3 SO3::right_jacobian(const Eigen::Ref<const Vector3>& omega) {
   const Scalar theta2 = omega.squaredNorm();
   const Matrix3 s = skew(omega);
-  Scalar a;  // (1 − cosθ)/θ²
-  Scalar b;  // (θ − sinθ)/θ³
+  Scalar a = Scalar(0);  // (1 − cosθ)/θ²
+  Scalar b = Scalar(0);  // (θ − sinθ)/θ³
   if (theta2 > kSmallAngle * kSmallAngle) {
     const Scalar theta = std::sqrt(theta2);
     a = (Scalar(1) - std::cos(theta)) / theta2;
@@ -162,8 +162,8 @@ inline Matrix3 SO3::left_jacobian(const Eigen::Ref<const Vector3>& omega) {
   // Jl(ω) = Jr(ω)ᵀ; since Sᵀ = −S this flips the sign of the S term only.
   const Scalar theta2 = omega.squaredNorm();
   const Matrix3 s = skew(omega);
-  Scalar a;
-  Scalar b;
+  Scalar a = Scalar(0);
+  Scalar b = Scalar(0);
   if (theta2 > kSmallAngle * kSmallAngle) {
     const Scalar theta = std::sqrt(theta2);
     a = (Scalar(1) - std::cos(theta)) / theta2;
@@ -178,7 +178,7 @@ inline Matrix3 SO3::left_jacobian(const Eigen::Ref<const Vector3>& omega) {
 inline Matrix3 SO3::right_jacobian_inverse(const Eigen::Ref<const Vector3>& omega) {
   const Scalar theta2 = omega.squaredNorm();
   const Matrix3 s = skew(omega);
-  Scalar c;  // 1/θ² − (1 + cosθ)/(2θ·sinθ)
+  Scalar c = Scalar(0);  // 1/θ² − (1 + cosθ)/(2θ·sinθ)
   if (theta2 > kSmallAngle * kSmallAngle) {
     const Scalar theta = std::sqrt(theta2);
     c = Scalar(1) / theta2 - (Scalar(1) + std::cos(theta)) / (Scalar(2) * theta * std::sin(theta));
@@ -191,7 +191,7 @@ inline Matrix3 SO3::right_jacobian_inverse(const Eigen::Ref<const Vector3>& omeg
 inline Matrix3 SO3::left_jacobian_inverse(const Eigen::Ref<const Vector3>& omega) {
   const Scalar theta2 = omega.squaredNorm();
   const Matrix3 s = skew(omega);
-  Scalar c;
+  Scalar c = Scalar(0);
   if (theta2 > kSmallAngle * kSmallAngle) {
     const Scalar theta = std::sqrt(theta2);
     c = Scalar(1) / theta2 - (Scalar(1) + std::cos(theta)) / (Scalar(2) * theta * std::sin(theta));

@@ -16,7 +16,7 @@ namespace tinyspatial {
 
 /// Motion cross product `m ×` (Featherstone). With m = (ω; v):
 /// `[[ [ω]_×, 0 ], [ [v]_×, [ω]_× ]]`. Acts on motion (twist) vectors.
-inline Matrix6 cross_motion(const Eigen::Ref<const Vector6>& m) {
+[[nodiscard]] inline Matrix6 cross_motion(const Eigen::Ref<const Vector6>& m) {
   const Matrix3 w = skew(m.head<3>());
   const Matrix3 vx = skew(m.tail<3>());
   Matrix6 x = Matrix6::Zero();
@@ -29,7 +29,7 @@ inline Matrix6 cross_motion(const Eigen::Ref<const Vector6>& m) {
 /// Force cross product `m ×*` (Featherstone), equal to `-(m ×)ᵀ`. With
 /// m = (ω; v): `[[ [ω]_×, [v]_× ], [ 0, [ω]_× ]]`. Acts on force (wrench)
 /// vectors.
-inline Matrix6 cross_force(const Eigen::Ref<const Vector6>& m) {
+[[nodiscard]] inline Matrix6 cross_force(const Eigen::Ref<const Vector6>& m) {
   const Matrix3 w = skew(m.head<3>());
   const Matrix3 vx = skew(m.tail<3>());
   Matrix6 x = Matrix6::Zero();

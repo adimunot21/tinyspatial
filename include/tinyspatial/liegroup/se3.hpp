@@ -32,13 +32,13 @@ class SE3 {
       : rotation_(rotation), translation_(translation) {}
 
   /// The identity transform.
-  static SE3 identity() { return SE3(); }
+  [[nodiscard]] static SE3 identity() { return SE3(); }
 
-  const SO3& rotation() const { return rotation_; }
-  const Vector3& translation() const { return translation_; }
+  [[nodiscard]] const SO3& rotation() const { return rotation_; }
+  [[nodiscard]] const Vector3& translation() const { return translation_; }
 
   /// The equivalent 4×4 homogeneous matrix.
-  Matrix4 matrix() const {
+  [[nodiscard]] Matrix4 matrix() const {
     Matrix4 m = Matrix4::Identity();
     m.topLeftCorner<3, 3>() = rotation_.matrix();
     m.topRightCorner<3, 1>() = translation_;
@@ -46,22 +46,24 @@ class SE3 {
   }
 
   /// Group composition: `(*this) ∘ rhs`.
-  SE3 operator*(const SE3& rhs) const {
+  [[nodiscard]] SE3 operator*(const SE3& rhs) const {
     return SE3(rotation_ * rhs.rotation_, rotation_.act(rhs.translation_) + translation_);
   }
 
   /// Group inverse.
-  SE3 inverse() const {
+  [[nodiscard]] SE3 inverse() const {
     const SO3 r_inv = rotation_.inverse();
     return SE3(r_inv, -r_inv.act(translation_));
   }
 
   /// Transform a point: returns `R·p + t`.
-  Vector3 act(const Eigen::Ref<const Vector3>& p) const { return rotation_.act(p) + translation_; }
+  [[nodiscard]] Vector3 act(const Eigen::Ref<const Vector3>& p) const {
+    return rotation_.act(p) + translation_;
+  }
 
   /// The 6×6 adjoint, angular-first: maps a twist expressed in this frame to
   /// the parent frame.
-  Matrix6 adjoint() const {
+  [[nodiscard]] Matrix6 adjoint() const {
     const Matrix3 r = rotation_.matrix();
     Matrix6 ad = Matrix6::Zero();
     ad.topLeftCorner<3, 3>() = r;
@@ -71,26 +73,26 @@ class SE3 {
   }
 
   /// Inverse of the adjoint: `Ad(T)⁻¹ = Ad(T⁻¹)`.
-  Matrix6 adjoint_inverse() const { return inverse().adjoint(); }
+  [[nodiscard]] Matrix6 adjoint_inverse() const { return inverse().adjoint(); }
 
   /// Exponential map: twist ξ = (ω; v) → transform.
-  static SE3 exp(const Eigen::Ref<const Vector6>& xi);
+  [[nodiscard]] static SE3 exp(const Eigen::Ref<const Vector6>& xi);
   /// Logarithm map: transform → twist ξ = (ω; v).
-  Vector6 log() const;
+  [[nodiscard]] Vector6 log() const;
 
   /// Left Jacobian Jl(ξ) on SE(3) (6×6).
-  static Matrix6 left_jacobian(const Eigen::Ref<const Vector6>& xi);
+  [[nodiscard]] static Matrix6 left_jacobian(const Eigen::Ref<const Vector6>& xi);
   /// Right Jacobian Jr(ξ) = Jl(-ξ).
-  static Matrix6 right_jacobian(const Eigen::Ref<const Vector6>& xi);
+  [[nodiscard]] static Matrix6 right_jacobian(const Eigen::Ref<const Vector6>& xi);
   /// Inverse of the left Jacobian.
-  static Matrix6 left_jacobian_inverse(const Eigen::Ref<const Vector6>& xi);
+  [[nodiscard]] static Matrix6 left_jacobian_inverse(const Eigen::Ref<const Vector6>& xi);
   /// Inverse of the right Jacobian.
-  static Matrix6 right_jacobian_inverse(const Eigen::Ref<const Vector6>& xi);
+  [[nodiscard]] static Matrix6 right_jacobian_inverse(const Eigen::Ref<const Vector6>& xi);
 
  private:
   /// Barfoot's Q(v, ω) block (angular-first), the off-diagonal of Jl(ξ).
-  static Matrix3 left_jacobian_q(const Eigen::Ref<const Vector3>& omega,
-                                 const Eigen::Ref<const Vector3>& v);
+  [[nodiscard]] static Matrix3 left_jacobian_q(const Eigen::Ref<const Vector3>& omega,
+                                               const Eigen::Ref<const Vector3>& v);
 
   SO3 rotation_;
   Vector3 translation_;
@@ -129,9 +131,9 @@ inline Matrix3 SE3::left_jacobian_q(const Eigen::Ref<const Vector3>& omega,
 
   // Coefficients (with Taylor fallbacks below kSmallAngle, where the closed
   // forms cancel). Leading values: c1→1/6, c2→1/24, c3→1/120.
-  Scalar c1;  // (θ − sinθ)/θ³
-  Scalar c2;  // (θ² + 2cosθ − 2)/(2θ⁴)
-  Scalar c3;  // (2θ − 3sinθ + θcosθ)/(2θ⁵)
+  Scalar c1 = Scalar(0);  // (θ − sinθ)/θ³
+  Scalar c2 = Scalar(0);  // (θ² + 2cosθ − 2)/(2θ⁴)
+  Scalar c3 = Scalar(0);  // (2θ − 3sinθ + θcosθ)/(2θ⁵)
   if (theta2 > kSmallAngle * kSmallAngle) {
     const Scalar theta = std::sqrt(theta2);
     const Scalar s = std::sin(theta);
