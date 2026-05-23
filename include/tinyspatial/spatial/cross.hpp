@@ -11,6 +11,8 @@
 
 #include "tinyspatial/core/types.hpp"
 #include "tinyspatial/liegroup/so3.hpp"
+#include "tinyspatial/spatial/force.hpp"
+#include "tinyspatial/spatial/motion.hpp"
 
 namespace tinyspatial {
 
@@ -37,6 +39,17 @@ namespace tinyspatial {
   x.bottomRightCorner<3, 3>() = w;
   x.topRightCorner<3, 3>() = vx;
   return x;
+}
+
+/// Typed motion-on-motion cross product: returns the Lie bracket
+/// `[v, m] = v × m` as a `Motion`. Antisymmetric: `cross(a, b) = -cross(b, a)`.
+[[nodiscard]] inline Motion cross(const Motion& v, const Motion& m) {
+  return Motion(cross_motion(v.vector()) * m.vector());
+}
+
+/// Typed motion-on-force cross product: returns `v ×* f` as a `Force`.
+[[nodiscard]] inline Force cross(const Motion& v, const Force& f) {
+  return Force(cross_force(v.vector()) * f.vector());
 }
 
 }  // namespace tinyspatial
