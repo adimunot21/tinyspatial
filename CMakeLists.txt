@@ -65,6 +65,30 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     -Wall -Wextra -Wpedantic)
 endif()
 
+# ---------------------------------------------------------------------------
+# Vendored tinyxml2 — single .cpp, treated as a SYSTEM include so its warnings
+# don't pollute our -Wall surface.
+# ---------------------------------------------------------------------------
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tinyxml2/tinyxml2.cpp")
+  add_library(tinyxml2_vendor STATIC third_party/tinyxml2/tinyxml2.cpp)
+  target_include_directories(tinyxml2_vendor SYSTEM PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party/tinyxml2>)
+  set_target_properties(tinyxml2_vendor PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+# ---------------------------------------------------------------------------
+# tinyspatial_urdf — non-template URDF parsing (heavy enough to deserve a .cpp
+# per CLAUDE.md §7). Linked in by anything that needs to read URDF; the
+# header-only `tinyspatial` target stays untouched.
+# ---------------------------------------------------------------------------
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tinyxml2/tinyxml2.cpp")
+  add_library(tinyspatial_urdf STATIC src/urdf/urdf_loader.cpp)
+  target_link_libraries(tinyspatial_urdf
+    PUBLIC tinyspatial
+    PRIVATE tinyxml2_vendor tinyspatial_warnings)
+  add_library(tinyspatial::urdf ALIAS tinyspatial_urdf)
+endif()
+
 if(TINYSPATIAL_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)

@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!--
+  franka_fr3 — SYNTHETIC fixture. 7-DOF revolute chain matching the FR3 joint
+  count and approximate link lengths drawn from public documentation; NOT
+  numerically equivalent to the official Franka Robotics URDF. See
+  data/robots/README.md for the swap plan in Phase 4.
+-->
+<robot name="franka_fr3">
+  <link name="fr3_link0">
+    <inertial>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="fr3_link1">
+    <inertial>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="fr3_link2">
+    <inertial>
+      <origin xyz="0 -0.05 0" rpy="0 0 0"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="fr3_link3">
+    <inertial>
+      <origin xyz="0 0 0.15" rpy="0 0 0"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="fr3_link4">
+    <inertial>
+      <origin xyz="0.04 0 0" rpy="0 0 0"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="fr3_link5">
+    <inertial>
+      <origin xyz="-0.04 0 0.2" rpy="0 0 0"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="fr3_link6">
+    <inertial>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.005" iyy="0.005" izz="0.005" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="fr3_link7">
+    <inertial>
+      <origin xyz="0.04 0 0.04" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="fr3_joint1" type="revolute">
+    <parent link="fr3_link0"/><child link="fr3_link1"/>
+    <origin xyz="0 0 0.333" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="fr3_joint2" type="revolute">
+    <parent link="fr3_link1"/><child link="fr3_link2"/>
+    <origin xyz="0 0 0" rpy="-1.5707963 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="fr3_joint3" type="revolute">
+    <parent link="fr3_link2"/><child link="fr3_link3"/>
+    <origin xyz="0 -0.316 0" rpy="1.5707963 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="fr3_joint4" type="revolute">
+    <parent link="fr3_link3"/><child link="fr3_link4"/>
+    <origin xyz="0.0825 0 0" rpy="1.5707963 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="fr3_joint5" type="revolute">
+    <parent link="fr3_link4"/><child link="fr3_link5"/>
+    <origin xyz="-0.0825 0.384 0" rpy="-1.5707963 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="fr3_joint6" type="revolute">
+    <parent link="fr3_link5"/><child link="fr3_link6"/>
+    <origin xyz="0 0 0" rpy="1.5707963 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="fr3_joint7" type="revolute">
+    <parent link="fr3_link6"/><child link="fr3_link7"/>
+    <origin xyz="0.088 0 0" rpy="1.5707963 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+</robot>

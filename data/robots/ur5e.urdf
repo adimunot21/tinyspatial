@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!--
+  ur5e — SYNTHETIC fixture. 6-DOF revolute chain matching UR5e's joint count
+  and approximate link lengths (d1=0.1625, a2=-0.425, a3=-0.3922, d4=0.1333,
+  d5=0.0997, d6=0.0996) from public UR documentation. NOT a drop-in
+  replacement for Universal Robots' official URDF; see data/robots/README.md.
+-->
+<robot name="ur5e">
+  <link name="base_link"/>
+  <link name="shoulder_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="3.7"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.005" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="upper_arm_link">
+    <inertial>
+      <origin xyz="-0.2 0 0.1" rpy="0 0 0"/>
+      <mass value="8.4"/>
+      <inertia ixx="0.13" iyy="0.13" izz="0.014" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="forearm_link">
+    <inertial>
+      <origin xyz="-0.2 0 0" rpy="0 0 0"/>
+      <mass value="2.3"/>
+      <inertia ixx="0.03" iyy="0.03" izz="0.005" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="wrist_1_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1.2"/>
+      <inertia ixx="0.005" iyy="0.005" izz="0.003" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="wrist_2_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1.2"/>
+      <inertia ixx="0.005" iyy="0.005" izz="0.003" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <link name="wrist_3_link">
+    <inertial>
+      <origin xyz="0 0 -0.03" rpy="0 0 0"/>
+      <mass value="0.25"/>
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="shoulder_pan_joint" type="revolute">
+    <parent link="base_link"/><child link="shoulder_link"/>
+    <origin xyz="0 0 0.1625" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="shoulder_lift_joint" type="revolute">
+    <parent link="shoulder_link"/><child link="upper_arm_link"/>
+    <origin xyz="0 0 0" rpy="0 1.5707963 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="elbow_joint" type="revolute">
+    <parent link="upper_arm_link"/><child link="forearm_link"/>
+    <origin xyz="-0.425 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="wrist_1_joint" type="revolute">
+    <parent link="forearm_link"/><child link="wrist_1_link"/>
+    <origin xyz="-0.3922 0 0.1333" rpy="0 1.5707963 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="wrist_2_joint" type="revolute">
+    <parent link="wrist_1_link"/><child link="wrist_2_link"/>
+    <origin xyz="0 -0.0997 0" rpy="1.5707963 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+  <joint name="wrist_3_joint" type="revolute">
+    <parent link="wrist_2_link"/><child link="wrist_3_link"/>
+    <origin xyz="0 0.0996 0" rpy="-1.5707963 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+</robot>
