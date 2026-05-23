@@ -72,6 +72,14 @@ nav:
       - The adjoint: 04_lie_groups/05_the_adjoint.md
       - Why robots need this: 04_lie_groups/06_why_robots_need_this.md
       - Exercises: 04_lie_groups/exercises.md
+  - "5 · Spatial algebra":
+      - Overview: 05_spatial_algebra/README.md
+      - Why six-vectors?: 05_spatial_algebra/01_why_six_vectors.md
+      - Twists and wrenches: 05_spatial_algebra/02_twists_and_wrenches.md
+      - The Plücker transform: 05_spatial_algebra/03_plucker.md
+      - Spatial inertia: 05_spatial_algebra/04_spatial_inertia.md
+      - How Featherstone thinks: 05_spatial_algebra/05_how_featherstone_thinks.md
+      - Exercises: 05_spatial_algebra/exercises.md
 
 # Don't fail the local build over not-yet-written cross-links between chapters.
 validation:
