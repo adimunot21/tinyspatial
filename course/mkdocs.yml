@@ -95,6 +95,21 @@ nav:
       - The loader: 07_urdf_robot_models/04_the_loader.md
       - Exploring the robots: 07_urdf_robot_models/05_exploring_the_robots.md
       - Exercises: 07_urdf_robot_models/exercises.md
+  - "8 · Forward kinematics":
+      - Overview: 08_forward_kinematics/README.md
+      - What FK is: 08_forward_kinematics/01_what_fk_is.md
+      - The recursion: 08_forward_kinematics/02_the_recursion.md
+      - In code: 08_forward_kinematics/03_in_code.md
+      - Validating against Pinocchio: 08_forward_kinematics/04_validation.md
+      - Exercises: 08_forward_kinematics/exercises.md
+  - "9 · Jacobians":
+      - Overview: 09_jacobians/README.md
+      - What a Jacobian is: 09_jacobians/01_what_a_jacobian_is.md
+      - Geometric vs analytical: 09_jacobians/02_geometric_vs_analytical.md
+      - Reference frames: 09_jacobians/03_reference_frames.md
+      - The screw-axis walk: 09_jacobians/04_in_code.md
+      - Singularities: 09_jacobians/05_singularities.md
+      - Exercises: 09_jacobians/exercises.md
 
 # Don't fail the local build over not-yet-written cross-links between chapters.
 validation:
