@@ -86,6 +86,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tinyxml2/tinyxml2.cpp")
   target_link_libraries(tinyspatial_urdf
     PUBLIC tinyspatial
     PRIVATE tinyxml2_vendor tinyspatial_warnings)
+  set_target_properties(tinyspatial_urdf PROPERTIES POSITION_INDEPENDENT_CODE ON)
   add_library(tinyspatial::urdf ALIAS tinyspatial_urdf)
 endif()
 
@@ -96,4 +97,41 @@ endif()
 
 if(TINYSPATIAL_BUILD_EXAMPLES)
   add_subdirectory(src/examples)
+endif()
+
+# ---------------------------------------------------------------------------
+# Validation-only Python binding (Phase 4 Pinocchio cross-check). Activated by
+# TINYSPATIAL_BUILD_VALIDATION=ON. Builds a single nanobind extension module
+# `_tinyspatial` and places it at `python/tinyspatial/_tinyspatial*.so` so the
+# validation tests can `import tinyspatial`. Full Python bindings (the public
+# package, examples) are Phase 8 work and live elsewhere.
+# ---------------------------------------------------------------------------
+if(TINYSPATIAL_BUILD_VALIDATION)
+  find_package(Python 3.10 COMPONENTS Interpreter Development.Module REQUIRED)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/nanobind/CMakeLists.txt")
+    # nanobind picks up the Python interpreter from the find_package call above.
+    add_subdirectory(third_party/nanobind EXCLUDE_FROM_ALL)
+    nanobind_add_module(_tinyspatial STABLE_ABI src/bindings/main.cpp)
+    target_link_libraries(_tinyspatial PRIVATE tinyspatial tinyspatial_urdf)
+    set_target_properties(_tinyspatial PROPERTIES
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/python/tinyspatial")
+
+    # CTest entry for the Pinocchio cross-check. Prefers the project venv at
+    # .venv (where `pin` is installed) over the system Python; falls back to
+    # ${Python_EXECUTABLE}. Labelled so `ctest --preset=validation -L
+    # pinocchio_parity` matches CLAUDE.md §9.
+    if(TINYSPATIAL_BUILD_TESTS)
+      set(_validation_python "${Python_EXECUTABLE}")
+      if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.venv/bin/python")
+        set(_validation_python "${CMAKE_CURRENT_SOURCE_DIR}/.venv/bin/python")
+      endif()
+      add_test(NAME pinocchio_parity_kinematics
+               COMMAND ${_validation_python}
+                       "${CMAKE_CURRENT_SOURCE_DIR}/tests/validation/test_kinematics.py"
+               WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+      set_tests_properties(pinocchio_parity_kinematics PROPERTIES
+        LABELS "pinocchio_parity"
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}/python")
+    endif()
+  endif()
 endif()

@@ -1,0 +1,10 @@
+# Python dependencies for the Pinocchio cross-validation harness.
+# Install into the project venv with:
+#   .venv/bin/pip install -r tests/validation/requirements.txt
+#
+# Pinocchio 3.9.0 (the oracle version pinned in CLAUDE.md §11) needs the
+# cmeel-urdfdom 4.x stack — newer urdfdom (6.x) ships incompatible .so
+# names and breaks the import.
+pin==3.9.0
+cmeel-urdfdom<5
+numpy
