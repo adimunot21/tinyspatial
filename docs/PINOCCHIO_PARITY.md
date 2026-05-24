@@ -14,11 +14,11 @@ Tolerance is **1e-10** absolute (CLAUDE.md §11). Pinocchio Jacobians are permut
 
 ## Dynamics (Phase 5)
 
-| Robot | RNEA (inverse dynamics) | CRBA (mass matrix) |
-| ----- | ----------------------- | ------------------ |
-| `simple_arm` | `3.55e-15` | `1.78e-15` |
-| `franka_fr3` | `6.39e-14` | `5.33e-15` |
-| `ur5e` | `4.62e-14` | `3.11e-15` |
-| `so_arm101` | `7.77e-16` | `2.43e-17` |
+| Robot | RNEA (inverse) | CRBA (mass matrix) | ABA (forward) |
+| ----- | -------------- | ------------------ | ------------- |
+| `simple_arm` | `3.55e-15` | `1.78e-15` | `7.11e-15` |
+| `franka_fr3` | `7.11e-14` | `5.33e-15` | `9.38e-13` |
+| `ur5e` | `4.40e-14` | `3.11e-15` | `4.55e-13` |
+| `so_arm101` | `6.66e-16` | `2.43e-17` | `5.46e-12` |
 
 _Regenerate with `cmake --preset=validation && cmake --build build/validation && .venv/bin/python tests/validation/test_kinematics.py`._

@@ -58,6 +58,7 @@ class Result:
     j_max_diff: dict[str, float] = None
     rnea_max_diff: float = 0.0
     crba_max_diff: float = 0.0
+    aba_max_diff: float = 0.0
 
     def __post_init__(self):
         if self.j_max_diff is None:
@@ -131,6 +132,15 @@ def validate(robot: str) -> Result:
         diff = float(np.max(np.abs(m_pin - m_ts)))
         if diff > result.crba_max_diff:
             result.crba_max_diff = diff
+
+        # ABA forward dynamics. Use a fresh random τ so it isn't trivially
+        # consistent with RNEA above.
+        tau_in = rng.standard_normal(pin_model.nv)
+        qdd_pin = pin.aba(pin_model, pin_data, q, v, tau_in)
+        qdd_ts = ts.aba(ts_model, q, v, tau_in, gravity)
+        diff = float(np.max(np.abs(qdd_pin - qdd_ts)))
+        if diff > result.aba_max_diff:
+            result.aba_max_diff = diff
     return result
 
 
@@ -165,11 +175,12 @@ def write_parity_table(results: dict[str, Result]) -> str:
     rows.append("")
     rows.append("## Dynamics (Phase 5)")
     rows.append("")
-    rows.append("| Robot | RNEA (inverse dynamics) | CRBA (mass matrix) |")
-    rows.append("| ----- | ----------------------- | ------------------ |")
+    rows.append("| Robot | RNEA (inverse) | CRBA (mass matrix) | ABA (forward) |")
+    rows.append("| ----- | -------------- | ------------------ | ------------- |")
     for robot, r in results.items():
         rows.append(
-            f"| `{robot}` | `{r.rnea_max_diff:.2e}` | `{r.crba_max_diff:.2e}` |"
+            f"| `{robot}` | `{r.rnea_max_diff:.2e}` | "
+            f"`{r.crba_max_diff:.2e}` | `{r.aba_max_diff:.2e}` |"
         )
     rows.append("")
     rows.append(
@@ -191,11 +202,13 @@ def main() -> int:
             print(f"  J ({name}) max diff: {r.j_max_diff[name]:.3e}")
         print(f"  RNEA max diff: {r.rnea_max_diff:.3e}")
         print(f"  CRBA max diff: {r.crba_max_diff:.3e}")
+        print(f"  ABA  max diff: {r.aba_max_diff:.3e}")
         if (
             r.fk_max_diff > TOLERANCE
             or any(v > TOLERANCE for v in r.j_max_diff.values())
             or r.rnea_max_diff > TOLERANCE
             or r.crba_max_diff > TOLERANCE
+            or r.aba_max_diff > TOLERANCE
         ):
             any_failed = True
             print(f"  ** EXCEEDS {TOLERANCE:.0e} **")

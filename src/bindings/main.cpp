@@ -15,6 +15,7 @@
 #include <nanobind/stl/vector.h>
 #include <vector>
 
+#include "tinyspatial/algo/aba.hpp"
 #include "tinyspatial/algo/crba.hpp"
 #include "tinyspatial/algo/forward_kinematics.hpp"
 #include "tinyspatial/algo/jacobian.hpp"
@@ -114,4 +115,18 @@ NB_MODULE(_tinyspatial, m) {  // NOLINT(readability-identifier-naming, readabili
       nb::arg("model"), nb::arg("q"),
       "Composite Rigid Body Algorithm: returns the joint-space inertia "
       "matrix M(q) (nv x nv, symmetric positive definite).");
+
+  m.def(
+      "aba",
+      [](const Model& model, const VectorX& q, const VectorX& v, const VectorX& tau,
+         const Vector3& gravity) {
+        Data d(model);
+        VectorX qdd(model.nv());
+        aba(model, d, q, v, tau, qdd, gravity);
+        return qdd;
+      },
+      nb::arg("model"), nb::arg("q"), nb::arg("v"), nb::arg("tau"),
+      nb::arg("gravity") = Vector3(0, 0, -9.81),
+      "Articulated-Body Algorithm: forward dynamics, returns q̈ for the "
+      "given (q, v, τ) and gravity (world frame).");
 }

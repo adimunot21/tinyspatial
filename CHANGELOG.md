@@ -18,14 +18,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     matrix `M(q)`. Leaves-to-root composite-inertia sweep, then for each joint
     walks up the parent chain transporting `F = ic · S_i` via the force
     Plücker transform to fill the off-diagonal blocks.
+  - `algo/aba.hpp`: Articulated-Body Algorithm — forward dynamics in O(N).
+    Three passes: outward `v[i]` + seed `IA[i]/pA[i]`, inward articulated-
+    inertia accumulation with rank-`nv_i` reduction at each joint, outward
+    `q̈` propagation with the gravity trick.
   - Tests: hand-computed gravity compensation and coupling-sign sanity for
     RNEA; symmetry + positive-definiteness + an `M(q) ≡ ∂τ/∂a` cross-check
-    against RNEA for CRBA, parameterised across all four fixtures.
-  - Pinocchio cross-validation extended to RNEA and CRBA over 1000 random
-    `(q, v, a)` samples per fixture: agreement at **~1e-14 to 1e-15**
-    (machine precision) on all four robots, well inside the `1e-10` tolerance.
-  - Python binding additions: `rnea(model, q, v, a, gravity)` and
-    `crba(model, q)`.
+    against RNEA for CRBA; the strongest property check for ABA —
+    `ABA(q, v, RNEA(q, v, a)) ≡ a` — plus consistency with `M⁻¹(τ − h)`.
+    All parameterised across the four fixtures.
+  - Pinocchio cross-validation extended to RNEA, CRBA, and ABA over 1000
+    random `(q, v, a, τ)` samples per fixture: agreement at **~1e-15**
+    (machine precision) for RNEA/CRBA and **~1e-12** for ABA, well inside
+    the `1e-10` tolerance.
+  - Python binding additions: `rnea(model, q, v, a, gravity)`,
+    `crba(model, q)`, `aba(model, q, v, tau, gravity)`.
 
 - **Phase 4 — Forward kinematics + Jacobians + Pinocchio validation.**
   - `algo/forward_kinematics.hpp`: single outbound sweep over the
