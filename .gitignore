@@ -32,6 +32,9 @@ checkpoints/*.pt
 # Claude Code local (machine-specific) settings
 .claude/settings.local.json
 
+# Built nanobind extension (validation-only; rebuilt from src/bindings/)
+python/tinyspatial/_tinyspatial*.so
+
 # Large robot assets: meshes are NOT tracked, but the small fixture URDFs
 # under data/robots/*.urdf ARE tracked because the test suite depends on them.
 data/robots/**/meshes/

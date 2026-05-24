@@ -67,35 +67,42 @@
     <parent link="fr3_link0"/><child link="fr3_link1"/>
     <origin xyz="0 0 0.333" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-  </joint>
+    <limit lower="-3.14159" upper="3.14159" effort="100" velocity="2.0"/>
+</joint>
   <joint name="fr3_joint2" type="revolute">
     <parent link="fr3_link1"/><child link="fr3_link2"/>
     <origin xyz="0 0 0" rpy="-1.5707963 0 0"/>
     <axis xyz="0 0 1"/>
-  </joint>
+    <limit lower="-3.14159" upper="3.14159" effort="100" velocity="2.0"/>
+</joint>
   <joint name="fr3_joint3" type="revolute">
     <parent link="fr3_link2"/><child link="fr3_link3"/>
     <origin xyz="0 -0.316 0" rpy="1.5707963 0 0"/>
     <axis xyz="0 0 1"/>
-  </joint>
+    <limit lower="-3.14159" upper="3.14159" effort="100" velocity="2.0"/>
+</joint>
   <joint name="fr3_joint4" type="revolute">
     <parent link="fr3_link3"/><child link="fr3_link4"/>
     <origin xyz="0.0825 0 0" rpy="1.5707963 0 0"/>
     <axis xyz="0 0 1"/>
-  </joint>
+    <limit lower="-3.14159" upper="3.14159" effort="100" velocity="2.0"/>
+</joint>
   <joint name="fr3_joint5" type="revolute">
     <parent link="fr3_link4"/><child link="fr3_link5"/>
     <origin xyz="-0.0825 0.384 0" rpy="-1.5707963 0 0"/>
     <axis xyz="0 0 1"/>
-  </joint>
+    <limit lower="-3.14159" upper="3.14159" effort="100" velocity="2.0"/>
+</joint>
   <joint name="fr3_joint6" type="revolute">
     <parent link="fr3_link5"/><child link="fr3_link6"/>
     <origin xyz="0 0 0" rpy="1.5707963 0 0"/>
     <axis xyz="0 0 1"/>
-  </joint>
+    <limit lower="-3.14159" upper="3.14159" effort="100" velocity="2.0"/>
+</joint>
   <joint name="fr3_joint7" type="revolute">
     <parent link="fr3_link6"/><child link="fr3_link7"/>
     <origin xyz="0.088 0 0" rpy="1.5707963 0 0"/>
     <axis xyz="0 0 1"/>
-  </joint>
+    <limit lower="-3.14159" upper="3.14159" effort="100" velocity="2.0"/>
+</joint>
 </robot>

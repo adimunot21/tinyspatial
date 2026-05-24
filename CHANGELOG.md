@@ -8,6 +8,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Phase 4 — Forward kinematics + Jacobians + Pinocchio validation.**
+  - `algo/forward_kinematics.hpp`: single outbound sweep over the
+    topologically-ordered Model, fills `Data::pose_in_parent` and
+    `Data::pose_in_world`.
+  - `algo/jacobian.hpp`: 6×nv geometric Jacobian in three reference frames
+    (`kLocal` / `kWorld` / `kLocalWorldAligned`). Walks up via `parent[]` so
+    only ancestor joints contribute; `std::visit` dispatches each joint
+    type's screw axis. One outer matrix multiply applies the frame
+    conversion at the end.
+  - 25 new C++ tests (92 total): hand-computed FK on `simple_arm`, 50 random
+    configurations per fixture URDF (rotation matrices stay orthonormal),
+    LOCAL/WORLD/LWA Jacobians agree with central finite differences to 1e-6,
+    LWA equals `diag(R, R) · LOCAL` exactly, non-ancestor joints contribute
+    zero columns.
+  - **Pinocchio 3.9 cross-validation harness** (`TINYSPATIAL_BUILD_VALIDATION`):
+    minimal nanobind binding (`src/bindings/main.cpp`), Python module under
+    `python/tinyspatial/`, and `tests/validation/test_kinematics.py` running
+    each fixture URDF in both libraries over 1000 random configurations.
+    Agreement is at **~1e-15 (machine precision)** for FK and all three
+    Jacobian frames on every robot — five orders of magnitude inside the
+    `1e-10` tolerance specified in `CLAUDE.md` §11.
+  - First entry in [`docs/PINOCCHIO_PARITY.md`](docs/PINOCCHIO_PARITY.md).
+  - Course chapters 08 (forward kinematics, 4 sub-chapters) and 09
+    (Jacobians, 5 sub-chapters), each with exercises and "Where this lives"
+    tables.
+
 - **Phase 3 — Kinematic tree + URDF loader.**
   - `model/joint.hpp`: `Joint = std::variant<JointFixed, JointRevolute,
     JointPrismatic, JointFloating>`, with `nq()/nv()/joint_transform()` free

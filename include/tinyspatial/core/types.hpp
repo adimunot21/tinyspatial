@@ -38,6 +38,8 @@ using Quaternion = Eigen::Quaternion<Scalar>;
 // Jacobians) from Phase 3 onward.
 using VectorX = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
 using MatrixX = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
+/// Spatial Jacobian: 6 rows (angular-first twist), `model.nv()` columns.
+using Matrix6X = Eigen::Matrix<Scalar, 6, Eigen::Dynamic>;
 
 }  // namespace tinyspatial
 
