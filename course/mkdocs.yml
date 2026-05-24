@@ -110,6 +110,22 @@ nav:
       - The screw-axis walk: 09_jacobians/04_in_code.md
       - Singularities: 09_jacobians/05_singularities.md
       - Exercises: 09_jacobians/exercises.md
+  - "10 · Inverse dynamics (RNEA)":
+      - Overview: 10_dynamics_RNEA/README.md
+      - The equation of motion: 10_dynamics_RNEA/01_equation_of_motion.md
+      - Newton–Euler on one body: 10_dynamics_RNEA/02_one_body.md
+      - The two passes: 10_dynamics_RNEA/03_two_passes.md
+      - In code: 10_dynamics_RNEA/04_in_code.md
+      - Validating against Pinocchio: 10_dynamics_RNEA/05_validation.md
+      - Exercises: 10_dynamics_RNEA/exercises.md
+  - "11 · ABA and CRBA":
+      - Overview: 11_ABA_and_CRBA/README.md
+      - Forward vs inverse: 11_ABA_and_CRBA/01_forward_vs_inverse.md
+      - Composite rigid bodies (CRBA): 11_ABA_and_CRBA/02_crba.md
+      - Articulated bodies (ABA): 11_ABA_and_CRBA/03_aba.md
+      - ABA in code: 11_ABA_and_CRBA/04_in_code.md
+      - Validating against Pinocchio: 11_ABA_and_CRBA/05_validation.md
+      - Exercises: 11_ABA_and_CRBA/exercises.md
 
 # Don't fail the local build over not-yet-written cross-links between chapters.
 validation:

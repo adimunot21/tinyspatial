@@ -99,6 +99,10 @@ if(TINYSPATIAL_BUILD_EXAMPLES)
   add_subdirectory(src/examples)
 endif()
 
+if(TINYSPATIAL_BUILD_BENCHMARKS)
+  add_subdirectory(benchmarks)
+endif()
+
 # ---------------------------------------------------------------------------
 # Validation-only Python binding (Phase 4 Pinocchio cross-check). Activated by
 # TINYSPATIAL_BUILD_VALIDATION=ON. Builds a single nanobind extension module

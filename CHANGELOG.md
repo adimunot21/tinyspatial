@@ -8,7 +8,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **Phase 5 (in progress) — Featherstone dynamics.**
+- **Phase 5 — Featherstone dynamics.**
   - `algo/rnea.hpp`: Recursive Newton–Euler inverse dynamics. Two-pass
     body-fixed implementation (outward velocities + accelerations with the
     gravity trick, inward wrench accumulation and joint-subspace projection).
@@ -33,6 +33,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     the `1e-10` tolerance.
   - Python binding additions: `rnea(model, q, v, a, gravity)`,
     `crba(model, q)`, `aba(model, q, v, tau, gravity)`.
+  - **Benchmarks** (`benchmarks/bench_rnea.cpp`, Google Benchmark): RNEA /
+    CRBA / ABA throughput on all four fixtures. Baseline on a 7-DoF Franka:
+    RNEA 194K/s, CRBA 122K/s, ABA 63K/s. CLAUDE.md §12 target is 6M/s on
+    RNEA — the gap is what later optimisation work is for. Recorded in
+    [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
+  - Course chapters [10 (RNEA, 5 sub-chapters)](course/10_dynamics_RNEA/README.md)
+    and [11 (ABA + CRBA, 5 sub-chapters)](course/11_ABA_and_CRBA/README.md),
+    each with exercises and "Where this lives" tables.
 
 - **Phase 4 — Forward kinematics + Jacobians + Pinocchio validation.**
   - `algo/forward_kinematics.hpp`: single outbound sweep over the
