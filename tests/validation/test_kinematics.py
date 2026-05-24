@@ -56,6 +56,7 @@ FRAMES = [
 class Result:
     fk_max_diff: float = 0.0
     j_max_diff: dict[str, float] = None
+    rnea_max_diff: float = 0.0
 
     def __post_init__(self):
         if self.j_max_diff is None:
@@ -79,8 +80,12 @@ def validate(robot: str) -> Result:
     pin.seed(SEED)
 
     result = Result()
+    rng = np.random.default_rng(SEED)
     for _ in range(NUM_SAMPLES):
         q = pin.randomConfiguration(pin_model)
+        v = rng.standard_normal(pin_model.nv)
+        a = rng.standard_normal(pin_model.nv)
+
         pin.forwardKinematics(pin_model, pin_data, q)
         pin.computeJointJacobians(pin_model, pin_data, q)
         ts_poses = ts.forward_kinematics(ts_model, q)
@@ -103,6 +108,19 @@ def validate(robot: str) -> Result:
             diff = float(np.max(np.abs(j_pin - j_ts)))
             if diff > result.j_max_diff[name]:
                 result.j_max_diff[name] = diff
+
+        # RNEA inverse dynamics. Pinocchio's gravity is a Motion stored on the
+        # model; we override with the same vector for cross-check determinism.
+        gravity = np.array([0.0, 0.0, -9.81])
+        # Pinocchio's model.gravity defaults to that already; set explicitly
+        # in case it was mutated.
+        pin_model.gravity.linear = gravity
+        pin_model.gravity.angular = np.zeros(3)
+        tau_pin = pin.rnea(pin_model, pin_data, q, v, a)
+        tau_ts = ts.rnea(ts_model, q, v, a, gravity)
+        diff = float(np.max(np.abs(tau_pin - tau_ts)))
+        if diff > result.rnea_max_diff:
+            result.rnea_max_diff = diff
     return result
 
 
@@ -120,15 +138,13 @@ def write_parity_table(results: dict[str, Result]) -> str:
         "convention difference, not a bug (CLAUDE.md §5)."
     )
     rows.append("")
-    rows.append("## Phase 4 — Forward kinematics + Jacobians")
+    rows.append("## Forward kinematics + Jacobians (Phase 4)")
     rows.append("")
     rows.append(
-        "| Robot | FK max-abs diff | J max-abs diff (LOCAL) | J max-abs diff (WORLD) | "
-        "J max-abs diff (LWA) |"
+        "| Robot | FK | J (LOCAL) | J (WORLD) | J (LWA) |"
     )
     rows.append(
-        "| ----- | --------------- | ---------------------- | ---------------------- | "
-        "-------------------- |"
+        "| ----- | -- | --------- | --------- | ------- |"
     )
     for robot, r in results.items():
         rows.append(
@@ -136,6 +152,13 @@ def write_parity_table(results: dict[str, Result]) -> str:
             f"`{r.j_max_diff['LOCAL']:.2e}` | `{r.j_max_diff['WORLD']:.2e}` | "
             f"`{r.j_max_diff['LOCAL_WORLD_ALIGNED']:.2e}` |"
         )
+    rows.append("")
+    rows.append("## Dynamics (Phase 5)")
+    rows.append("")
+    rows.append("| Robot | RNEA (inverse dynamics) |")
+    rows.append("| ----- | ----------------------- |")
+    for robot, r in results.items():
+        rows.append(f"| `{robot}` | `{r.rnea_max_diff:.2e}` |")
     rows.append("")
     rows.append(
         "_Regenerate with `cmake --preset=validation && cmake --build build/validation && "
@@ -154,7 +177,12 @@ def main() -> int:
         print(f"  FK max diff: {r.fk_max_diff:.3e}")
         for name in r.j_max_diff:
             print(f"  J ({name}) max diff: {r.j_max_diff[name]:.3e}")
-        if r.fk_max_diff > TOLERANCE or any(v > TOLERANCE for v in r.j_max_diff.values()):
+        print(f"  RNEA max diff: {r.rnea_max_diff:.3e}")
+        if (
+            r.fk_max_diff > TOLERANCE
+            or any(v > TOLERANCE for v in r.j_max_diff.values())
+            or r.rnea_max_diff > TOLERANCE
+        ):
             any_failed = True
             print(f"  ** EXCEEDS {TOLERANCE:.0e} **")
         results[robot] = r

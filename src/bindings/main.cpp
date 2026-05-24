@@ -17,6 +17,7 @@
 
 #include "tinyspatial/algo/forward_kinematics.hpp"
 #include "tinyspatial/algo/jacobian.hpp"
+#include "tinyspatial/algo/rnea.hpp"
 #include "tinyspatial/urdf/urdf_loader.hpp"
 
 namespace nb = nanobind;
@@ -86,4 +87,18 @@ NB_MODULE(_tinyspatial, m) {  // NOLINT(readability-identifier-naming, readabili
       nb::arg("model"), nb::arg("q"), nb::arg("link_id"), nb::arg("frame") = JacobianFrame::kLocal,
       "6 x nv geometric Jacobian of `link_id`'s body frame in the chosen "
       "reference frame (LOCAL / WORLD / LOCAL_WORLD_ALIGNED).");
+
+  m.def(
+      "rnea",
+      [](const Model& model, const VectorX& q, const VectorX& v, const VectorX& a,
+         const Vector3& gravity) {
+        Data d(model);
+        VectorX tau(model.nv());
+        rnea(model, d, q, v, a, tau, gravity);
+        return tau;
+      },
+      nb::arg("model"), nb::arg("q"), nb::arg("v"), nb::arg("a"),
+      nb::arg("gravity") = Vector3(0, 0, -9.81),
+      "Inverse dynamics: returns the joint torques required for the given "
+      "(q, v, a) under the given gravity vector (world frame).");
 }
