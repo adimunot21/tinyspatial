@@ -15,6 +15,7 @@
 #include <nanobind/stl/vector.h>
 #include <vector>
 
+#include "tinyspatial/algo/crba.hpp"
 #include "tinyspatial/algo/forward_kinematics.hpp"
 #include "tinyspatial/algo/jacobian.hpp"
 #include "tinyspatial/algo/rnea.hpp"
@@ -101,4 +102,16 @@ NB_MODULE(_tinyspatial, m) {  // NOLINT(readability-identifier-naming, readabili
       nb::arg("gravity") = Vector3(0, 0, -9.81),
       "Inverse dynamics: returns the joint torques required for the given "
       "(q, v, a) under the given gravity vector (world frame).");
+
+  m.def(
+      "crba",
+      [](const Model& model, const VectorX& q) {
+        Data d(model);
+        MatrixX big_m(model.nv(), model.nv());
+        crba(model, d, q, big_m);
+        return big_m;
+      },
+      nb::arg("model"), nb::arg("q"),
+      "Composite Rigid Body Algorithm: returns the joint-space inertia "
+      "matrix M(q) (nv x nv, symmetric positive definite).");
 }

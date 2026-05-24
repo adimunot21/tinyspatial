@@ -13,6 +13,7 @@ from ._tinyspatial import (  # noqa: F401
     WORLD,
     build_model_from_urdf_file,
     compute_jacobian,
+    crba,
     forward_kinematics,
     rnea,
 )
@@ -25,6 +26,7 @@ __all__ = [
     "WORLD",
     "build_model_from_urdf_file",
     "compute_jacobian",
+    "crba",
     "forward_kinematics",
     "rnea",
 ]

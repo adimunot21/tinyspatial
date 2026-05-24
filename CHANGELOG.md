@@ -8,6 +8,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Phase 5 (in progress) — Featherstone dynamics.**
+  - `algo/rnea.hpp`: Recursive Newton–Euler inverse dynamics. Two-pass
+    body-fixed implementation (outward velocities + accelerations with the
+    gravity trick, inward wrench accumulation and joint-subspace projection).
+    `std::visit` dispatches per joint type for both the `S · v_slice` motion
+    contribution and the `Sᵀ · F` torque projection.
+  - `algo/crba.hpp`: Composite Rigid Body Algorithm — joint-space inertia
+    matrix `M(q)`. Leaves-to-root composite-inertia sweep, then for each joint
+    walks up the parent chain transporting `F = ic · S_i` via the force
+    Plücker transform to fill the off-diagonal blocks.
+  - Tests: hand-computed gravity compensation and coupling-sign sanity for
+    RNEA; symmetry + positive-definiteness + an `M(q) ≡ ∂τ/∂a` cross-check
+    against RNEA for CRBA, parameterised across all four fixtures.
+  - Pinocchio cross-validation extended to RNEA and CRBA over 1000 random
+    `(q, v, a)` samples per fixture: agreement at **~1e-14 to 1e-15**
+    (machine precision) on all four robots, well inside the `1e-10` tolerance.
+  - Python binding additions: `rnea(model, q, v, a, gravity)` and
+    `crba(model, q)`.
+
 - **Phase 4 — Forward kinematics + Jacobians + Pinocchio validation.**
   - `algo/forward_kinematics.hpp`: single outbound sweep over the
     topologically-ordered Model, fills `Data::pose_in_parent` and
