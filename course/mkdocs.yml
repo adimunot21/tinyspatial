@@ -55,6 +55,10 @@ nav:
       - Overview: 00_welcome/README.md
       - What is a robot?: 00_welcome/01_what_is_a_robot.md
       - Set up your machine: 00_welcome/02_setup_your_machine.md
+  - "1 · C++ foundations":
+      - Overview: 01_cpp_foundations/README.md
+  - "2 · Linear algebra":
+      - Overview: 02_linear_algebra/README.md
   - "3 · Rotations & transforms":
       - Overview: 03_rotations_and_transforms/README.md
       - What is a rotation?: 03_rotations_and_transforms/01_what_is_a_rotation.md
