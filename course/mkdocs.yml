@@ -55,6 +55,10 @@ nav:
       - Overview: 00_welcome/README.md
       - What is a robot?: 00_welcome/01_what_is_a_robot.md
       - Set up your machine: 00_welcome/02_setup_your_machine.md
+  - "1 · C++ foundations":
+      - Overview: 01_cpp_foundations/README.md
+  - "2 · Linear algebra":
+      - Overview: 02_linear_algebra/README.md
   - "3 · Rotations & transforms":
       - Overview: 03_rotations_and_transforms/README.md
       - What is a rotation?: 03_rotations_and_transforms/01_what_is_a_rotation.md
@@ -110,6 +114,22 @@ nav:
       - The screw-axis walk: 09_jacobians/04_in_code.md
       - Singularities: 09_jacobians/05_singularities.md
       - Exercises: 09_jacobians/exercises.md
+  - "10 · Inverse dynamics (RNEA)":
+      - Overview: 10_dynamics_RNEA/README.md
+      - The equation of motion: 10_dynamics_RNEA/01_equation_of_motion.md
+      - Newton–Euler on one body: 10_dynamics_RNEA/02_one_body.md
+      - The two passes: 10_dynamics_RNEA/03_two_passes.md
+      - In code: 10_dynamics_RNEA/04_in_code.md
+      - Validating against Pinocchio: 10_dynamics_RNEA/05_validation.md
+      - Exercises: 10_dynamics_RNEA/exercises.md
+  - "11 · ABA and CRBA":
+      - Overview: 11_ABA_and_CRBA/README.md
+      - Forward vs inverse: 11_ABA_and_CRBA/01_forward_vs_inverse.md
+      - Composite rigid bodies (CRBA): 11_ABA_and_CRBA/02_crba.md
+      - Articulated bodies (ABA): 11_ABA_and_CRBA/03_aba.md
+      - ABA in code: 11_ABA_and_CRBA/04_in_code.md
+      - Validating against Pinocchio: 11_ABA_and_CRBA/05_validation.md
+      - Exercises: 11_ABA_and_CRBA/exercises.md
 
 # Don't fail the local build over not-yet-written cross-links between chapters.
 validation:

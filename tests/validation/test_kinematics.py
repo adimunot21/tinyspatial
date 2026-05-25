@@ -56,6 +56,9 @@ FRAMES = [
 class Result:
     fk_max_diff: float = 0.0
     j_max_diff: dict[str, float] = None
+    rnea_max_diff: float = 0.0
+    crba_max_diff: float = 0.0
+    aba_max_diff: float = 0.0
 
     def __post_init__(self):
         if self.j_max_diff is None:
@@ -79,8 +82,12 @@ def validate(robot: str) -> Result:
     pin.seed(SEED)
 
     result = Result()
+    rng = np.random.default_rng(SEED)
     for _ in range(NUM_SAMPLES):
         q = pin.randomConfiguration(pin_model)
+        v = rng.standard_normal(pin_model.nv)
+        a = rng.standard_normal(pin_model.nv)
+
         pin.forwardKinematics(pin_model, pin_data, q)
         pin.computeJointJacobians(pin_model, pin_data, q)
         ts_poses = ts.forward_kinematics(ts_model, q)
@@ -103,6 +110,37 @@ def validate(robot: str) -> Result:
             diff = float(np.max(np.abs(j_pin - j_ts)))
             if diff > result.j_max_diff[name]:
                 result.j_max_diff[name] = diff
+
+        # RNEA inverse dynamics. Pinocchio's gravity is a Motion stored on the
+        # model; we override with the same vector for cross-check determinism.
+        gravity = np.array([0.0, 0.0, -9.81])
+        # Pinocchio's model.gravity defaults to that already; set explicitly
+        # in case it was mutated.
+        pin_model.gravity.linear = gravity
+        pin_model.gravity.angular = np.zeros(3)
+        tau_pin = pin.rnea(pin_model, pin_data, q, v, a)
+        tau_ts = ts.rnea(ts_model, q, v, a, gravity)
+        diff = float(np.max(np.abs(tau_pin - tau_ts)))
+        if diff > result.rnea_max_diff:
+            result.rnea_max_diff = diff
+
+        # CRBA mass matrix. Pinocchio fills only the upper triangle of M;
+        # symmetrise before comparison.
+        m_pin = pin.crba(pin_model, pin_data, q)
+        m_pin = np.triu(m_pin) + np.triu(m_pin, 1).T
+        m_ts = ts.crba(ts_model, q)
+        diff = float(np.max(np.abs(m_pin - m_ts)))
+        if diff > result.crba_max_diff:
+            result.crba_max_diff = diff
+
+        # ABA forward dynamics. Use a fresh random τ so it isn't trivially
+        # consistent with RNEA above.
+        tau_in = rng.standard_normal(pin_model.nv)
+        qdd_pin = pin.aba(pin_model, pin_data, q, v, tau_in)
+        qdd_ts = ts.aba(ts_model, q, v, tau_in, gravity)
+        diff = float(np.max(np.abs(qdd_pin - qdd_ts)))
+        if diff > result.aba_max_diff:
+            result.aba_max_diff = diff
     return result
 
 
@@ -120,21 +158,29 @@ def write_parity_table(results: dict[str, Result]) -> str:
         "convention difference, not a bug (CLAUDE.md §5)."
     )
     rows.append("")
-    rows.append("## Phase 4 — Forward kinematics + Jacobians")
+    rows.append("## Forward kinematics + Jacobians (Phase 4)")
     rows.append("")
     rows.append(
-        "| Robot | FK max-abs diff | J max-abs diff (LOCAL) | J max-abs diff (WORLD) | "
-        "J max-abs diff (LWA) |"
+        "| Robot | FK | J (LOCAL) | J (WORLD) | J (LWA) |"
     )
     rows.append(
-        "| ----- | --------------- | ---------------------- | ---------------------- | "
-        "-------------------- |"
+        "| ----- | -- | --------- | --------- | ------- |"
     )
     for robot, r in results.items():
         rows.append(
             f"| `{robot}` | `{r.fk_max_diff:.2e}` | "
             f"`{r.j_max_diff['LOCAL']:.2e}` | `{r.j_max_diff['WORLD']:.2e}` | "
             f"`{r.j_max_diff['LOCAL_WORLD_ALIGNED']:.2e}` |"
+        )
+    rows.append("")
+    rows.append("## Dynamics (Phase 5)")
+    rows.append("")
+    rows.append("| Robot | RNEA (inverse) | CRBA (mass matrix) | ABA (forward) |")
+    rows.append("| ----- | -------------- | ------------------ | ------------- |")
+    for robot, r in results.items():
+        rows.append(
+            f"| `{robot}` | `{r.rnea_max_diff:.2e}` | "
+            f"`{r.crba_max_diff:.2e}` | `{r.aba_max_diff:.2e}` |"
         )
     rows.append("")
     rows.append(
@@ -154,7 +200,16 @@ def main() -> int:
         print(f"  FK max diff: {r.fk_max_diff:.3e}")
         for name in r.j_max_diff:
             print(f"  J ({name}) max diff: {r.j_max_diff[name]:.3e}")
-        if r.fk_max_diff > TOLERANCE or any(v > TOLERANCE for v in r.j_max_diff.values()):
+        print(f"  RNEA max diff: {r.rnea_max_diff:.3e}")
+        print(f"  CRBA max diff: {r.crba_max_diff:.3e}")
+        print(f"  ABA  max diff: {r.aba_max_diff:.3e}")
+        if (
+            r.fk_max_diff > TOLERANCE
+            or any(v > TOLERANCE for v in r.j_max_diff.values())
+            or r.rnea_max_diff > TOLERANCE
+            or r.crba_max_diff > TOLERANCE
+            or r.aba_max_diff > TOLERANCE
+        ):
             any_failed = True
             print(f"  ** EXCEEDS {TOLERANCE:.0e} **")
         results[robot] = r
