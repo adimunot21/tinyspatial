@@ -8,6 +8,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Phase 6 — Analytical derivatives.**
+  - `include/tinyspatial/diff/fk_derivatives.hpp`:
+    `compute_joint_jacobians()` fills a `std::vector<Matrix6X>` (one 6×nv
+    matrix per joint) via the recurrence `J_i = X_pi · J_p` plus the
+    joint's own screw axis at column `idx_v[i]`. Single forward sweep.
+  - `include/tinyspatial/diff/rnea_derivatives.hpp`: analytical
+    `∂τ/∂q`, `∂τ/∂v`, `∂τ/∂a` following Carpentier & Mansard (2018).
+    Body-fixed, angular-first; O(N²) total cost via two identities
+    (cross-motion antisymmetry, force-cross-motion duality) that turn
+    per-column work into matrix products.
+  - Unit tests (20 new): FK-derivative consistency with the existing
+    single-joint Jacobian; central-FD agreement of RNEA derivatives at
+    ε=1e-6 to ≤ 1e-6; `∂τ/∂a ≡ M(q)` from CRBA (structural identity) to
+    ≤ 1e-10; ∂τ/∂a symmetric to ≤ 1e-10.
+  - **Pinocchio 3.9 cross-validation** extended over 1000 random
+    `(q, v, a)` per fixture: `∂τ/∂q` ~1e-13, `∂τ/∂v` ~1e-14, `∂τ/∂a`
+    ~1e-15. All three orders of magnitude inside the 1e-10 spec.
+  - Python binding: `rnea_derivatives(model, q, v, a, gravity)` returns
+    a `(∂τ/∂q, ∂τ/∂v, ∂τ/∂a)` tuple.
+  - Course chapter [10b — RNEA derivatives (advanced)](course/10b_rnea_derivatives/README.md):
+    optional advanced read on the Carpentier-Mansard algorithm with both
+    identities derived and the implementation walked through.
+
 - **Phase 5 — Featherstone dynamics.**
   - `algo/rnea.hpp`: Recursive Newton–Euler inverse dynamics. Two-pass
     body-fixed implementation (outward velocities + accelerations with the
