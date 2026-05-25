@@ -12,7 +12,9 @@
 #include <nanobind/eigen/dense.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/tuple.h>
 #include <nanobind/stl/vector.h>
+#include <tuple>
 #include <vector>
 
 #include "tinyspatial/algo/aba.hpp"
@@ -20,6 +22,7 @@
 #include "tinyspatial/algo/forward_kinematics.hpp"
 #include "tinyspatial/algo/jacobian.hpp"
 #include "tinyspatial/algo/rnea.hpp"
+#include "tinyspatial/diff/rnea_derivatives.hpp"
 #include "tinyspatial/urdf/urdf_loader.hpp"
 
 namespace nb = nanobind;
@@ -129,4 +132,20 @@ NB_MODULE(_tinyspatial, m) {  // NOLINT(readability-identifier-naming, readabili
       nb::arg("gravity") = Vector3(0, 0, -9.81),
       "Articulated-Body Algorithm: forward dynamics, returns q̈ for the "
       "given (q, v, τ) and gravity (world frame).");
+
+  m.def(
+      "rnea_derivatives",
+      [](const Model& model, const VectorX& q, const VectorX& v, const VectorX& a,
+         const Vector3& gravity) {
+        Data d(model);
+        MatrixX dtau_dq(model.nv(), model.nv());
+        MatrixX dtau_dv(model.nv(), model.nv());
+        MatrixX dtau_da(model.nv(), model.nv());
+        rnea_derivatives(model, d, q, v, a, dtau_dq, dtau_dv, dtau_da, gravity);
+        return std::make_tuple(dtau_dq, dtau_dv, dtau_da);
+      },
+      nb::arg("model"), nb::arg("q"), nb::arg("v"), nb::arg("a"),
+      nb::arg("gravity") = Vector3(0, 0, -9.81),
+      "Analytical partials of inverse dynamics: returns (∂τ/∂q, ∂τ/∂v, "
+      "∂τ/∂a), each nv×nv. ∂τ/∂a ≡ M(q).");
 }

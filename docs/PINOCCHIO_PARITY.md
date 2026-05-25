@@ -21,4 +21,13 @@ Tolerance is **1e-10** absolute (CLAUDE.md §11). Pinocchio Jacobians are permut
 | `ur5e` | `4.40e-14` | `3.11e-15` | `4.55e-13` |
 | `so_arm101` | `6.66e-16` | `2.43e-17` | `5.46e-12` |
 
+## Analytical derivatives (Phase 6)
+
+| Robot | ∂τ/∂q | ∂τ/∂v | ∂τ/∂a (= M) |
+| ----- | ----- | ----- | ----------- |
+| `simple_arm` | `5.33e-15` | `3.55e-15` | `1.78e-15` |
+| `franka_fr3` | `1.28e-13` | `1.42e-14` | `6.22e-15` |
+| `ur5e` | `4.97e-14` | `8.88e-15` | `3.55e-15` |
+| `so_arm101` | `8.33e-16` | `4.16e-17` | `2.43e-17` |
+
 _Regenerate with `cmake --preset=validation && cmake --build build/validation && .venv/bin/python tests/validation/test_kinematics.py`._

@@ -17,6 +17,7 @@ from ._tinyspatial import (  # noqa: F401
     crba,
     forward_kinematics,
     rnea,
+    rnea_derivatives,
 )
 
 __all__ = [
@@ -31,4 +32,5 @@ __all__ = [
     "crba",
     "forward_kinematics",
     "rnea",
+    "rnea_derivatives",
 ]

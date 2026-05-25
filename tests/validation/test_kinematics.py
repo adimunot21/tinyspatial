@@ -59,6 +59,9 @@ class Result:
     rnea_max_diff: float = 0.0
     crba_max_diff: float = 0.0
     aba_max_diff: float = 0.0
+    dtau_dq_max_diff: float = 0.0
+    dtau_dv_max_diff: float = 0.0
+    dtau_da_max_diff: float = 0.0
 
     def __post_init__(self):
         if self.j_max_diff is None:
@@ -141,6 +144,26 @@ def validate(robot: str) -> Result:
         diff = float(np.max(np.abs(qdd_pin - qdd_ts)))
         if diff > result.aba_max_diff:
             result.aba_max_diff = diff
+
+        # Analytical RNEA derivatives. Pinocchio fills data.dtau_dq, data.dtau_dv;
+        # ∂τ/∂a is the mass matrix M (only upper triangle filled, like crba).
+        pin.computeRNEADerivatives(pin_model, pin_data, q, v, a)
+        dtau_dq_pin = np.array(pin_data.dtau_dq)
+        dtau_dv_pin = np.array(pin_data.dtau_dv)
+        dtau_da_pin = np.array(pin_data.M)
+        dtau_da_pin = np.triu(dtau_da_pin) + np.triu(dtau_da_pin, 1).T
+
+        dtau_dq_ts, dtau_dv_ts, dtau_da_ts = ts.rnea_derivatives(ts_model, q, v, a, gravity)
+
+        d_q = float(np.max(np.abs(dtau_dq_pin - dtau_dq_ts)))
+        d_v = float(np.max(np.abs(dtau_dv_pin - dtau_dv_ts)))
+        d_a = float(np.max(np.abs(dtau_da_pin - dtau_da_ts)))
+        if d_q > result.dtau_dq_max_diff:
+            result.dtau_dq_max_diff = d_q
+        if d_v > result.dtau_dv_max_diff:
+            result.dtau_dv_max_diff = d_v
+        if d_a > result.dtau_da_max_diff:
+            result.dtau_da_max_diff = d_a
     return result
 
 
@@ -183,6 +206,16 @@ def write_parity_table(results: dict[str, Result]) -> str:
             f"`{r.crba_max_diff:.2e}` | `{r.aba_max_diff:.2e}` |"
         )
     rows.append("")
+    rows.append("## Analytical derivatives (Phase 6)")
+    rows.append("")
+    rows.append("| Robot | ∂τ/∂q | ∂τ/∂v | ∂τ/∂a (= M) |")
+    rows.append("| ----- | ----- | ----- | ----------- |")
+    for robot, r in results.items():
+        rows.append(
+            f"| `{robot}` | `{r.dtau_dq_max_diff:.2e}` | "
+            f"`{r.dtau_dv_max_diff:.2e}` | `{r.dtau_da_max_diff:.2e}` |"
+        )
+    rows.append("")
     rows.append(
         "_Regenerate with `cmake --preset=validation && cmake --build build/validation && "
         ".venv/bin/python tests/validation/test_kinematics.py`._"
@@ -203,12 +236,18 @@ def main() -> int:
         print(f"  RNEA max diff: {r.rnea_max_diff:.3e}")
         print(f"  CRBA max diff: {r.crba_max_diff:.3e}")
         print(f"  ABA  max diff: {r.aba_max_diff:.3e}")
+        print(f"  ∂τ/∂q max diff: {r.dtau_dq_max_diff:.3e}")
+        print(f"  ∂τ/∂v max diff: {r.dtau_dv_max_diff:.3e}")
+        print(f"  ∂τ/∂a max diff: {r.dtau_da_max_diff:.3e}")
         if (
             r.fk_max_diff > TOLERANCE
             or any(v > TOLERANCE for v in r.j_max_diff.values())
             or r.rnea_max_diff > TOLERANCE
             or r.crba_max_diff > TOLERANCE
             or r.aba_max_diff > TOLERANCE
+            or r.dtau_dq_max_diff > TOLERANCE
+            or r.dtau_dv_max_diff > TOLERANCE
+            or r.dtau_da_max_diff > TOLERANCE
         ):
             any_failed = True
             print(f"  ** EXCEEDS {TOLERANCE:.0e} **")
