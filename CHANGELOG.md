@@ -8,6 +8,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Phase 7a — Inverse kinematics (DLS + nullspace).**
+  - `include/tinyspatial/ik/dls.hpp` — damped least-squares (Nakamura-
+    Hanafusa) iterative IK with body-frame Lie-tangent error.
+    `IkResult { q, error, iterations, converged }` so callers handle
+    non-convergence without exceptions.
+  - `include/tinyspatial/ik/nullspace.hpp` — task-priority IK with a
+    posture-attraction secondary objective `(q_rest − q)` projected
+    through `N(J)`. Two-tier damping (λ=1e-2 for the primary step,
+    λ_proj=1e-10 for the projector) makes the projector near-exact so
+    the primary task can converge tightly.
+  - Tests (15 new): convergence on ≥ 80/100 random seeds (the realistic
+    single-seed bar on 6-DoF UR5e per Buss & Kim 2005); identity-seed
+    early exit; max_iters honored; nullspace primary still converges
+    with strong secondary gain; nullspace beats plain DLS on
+    ‖q − q_rest‖ on ≥ 70% of matched Franka trials; degenerate non-
+    redundant case (2-DoF simple_arm) doesn't blow up.
+  - Course chapter [12 — Inverse kinematics](course/12_inverse_kinematics/README.md)
+    with 6 sub-chapters and exercises: the inverse problem and SE(3)
+    error, the Jacobian approach (Newton on a manifold), the
+    Moore-Penrose pseudoinverse and DLS damping, an in-code walkthrough,
+    null-space + secondary tasks + the two-tier damping trick, and a
+    failure-modes field guide.
+
 - **Phase 6 — Analytical derivatives.**
   - `include/tinyspatial/diff/fk_derivatives.hpp`:
     `compute_joint_jacobians()` fills a `std::vector<Matrix6X>` (one 6×nv

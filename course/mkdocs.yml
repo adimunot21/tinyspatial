@@ -124,6 +124,15 @@ nav:
       - Exercises: 10_dynamics_RNEA/exercises.md
   - "10b · RNEA derivatives (advanced)":
       - Overview: 10b_rnea_derivatives/README.md
+  - "12 · Inverse kinematics":
+      - Overview: 12_inverse_kinematics/README.md
+      - The inverse problem: 12_inverse_kinematics/01_the_inverse_problem.md
+      - The Jacobian approach: 12_inverse_kinematics/02_the_jacobian_approach.md
+      - Pseudoinverse and damping: 12_inverse_kinematics/03_pseudoinverse_and_damping.md
+      - In code (solve_ik_dls): 12_inverse_kinematics/04_in_code.md
+      - Null-space and secondary tasks: 12_inverse_kinematics/05_nullspace_secondary.md
+      - When IK fails: 12_inverse_kinematics/06_convergence_and_failure.md
+      - Exercises: 12_inverse_kinematics/exercises.md
   - "11 · ABA and CRBA":
       - Overview: 11_ABA_and_CRBA/README.md
       - Forward vs inverse: 11_ABA_and_CRBA/01_forward_vs_inverse.md
