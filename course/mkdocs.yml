@@ -133,6 +133,13 @@ nav:
       - Null-space and secondary tasks: 12_inverse_kinematics/05_nullspace_secondary.md
       - When IK fails: 12_inverse_kinematics/06_convergence_and_failure.md
       - Exercises: 12_inverse_kinematics/exercises.md
+  - "13 · Differentiable IK":
+      - Overview: 13_differentiable_ik/README.md
+      - Why differentiable IK matters: 13_differentiable_ik/01_why_differentiable_ik.md
+      - The implicit function theorem: 13_differentiable_ik/02_implicit_function_theorem.md
+      - The IK case: 13_differentiable_ik/03_the_ik_case.md
+      - In code: 13_differentiable_ik/04_in_code.md
+      - Exercises: 13_differentiable_ik/exercises.md
   - "11 · ABA and CRBA":
       - Overview: 11_ABA_and_CRBA/README.md
       - Forward vs inverse: 11_ABA_and_CRBA/01_forward_vs_inverse.md
