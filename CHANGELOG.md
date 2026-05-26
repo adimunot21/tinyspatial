@@ -8,6 +8,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Phase 7b — Differentiable inverse kinematics.**
+  - `include/tinyspatial/ik/differentiable.hpp` — `ik_implicit_derivative()`
+    returns `∂q*/∂T*` as an `nv × 6` matrix using the implicit function
+    theorem at the IK fixed point: `∂q*/∂T* = J^T(JJ^T + λ²I)⁻¹`,
+    matching the DLS solver's damped pseudoinverse for consistency
+    near singularities. Body-frame parametrization (right-multiplicative
+    `T* → T* · exp(δξ^∧)`); world-frame via post-multiplication by
+    `Ad_{T*}^{-1}`.
+  - Tests (3 new): central-FD agreement to ≤ 1e-4 on Franka with
+    matched-damping setup (λ=1e-5 in both solver and analytical formula
+    removes the damping-bias contribution); shape + finiteness on
+    UR5e; larger λ → smaller derivative norm (sign-flip catch).
+  - Course chapter [13 — Differentiable IK](course/13_differentiable_ik/README.md)
+    with 4 sub-chapters + exercises: why differentiable IK matters
+    (end-to-end learning, sensitivity, MPC), the implicit function
+    theorem from scratch, the IK derivation, an in-code walkthrough
+    plus a PyTorch wrapping sketch.
+
 - **Phase 7a — Inverse kinematics (DLS + nullspace).**
   - `include/tinyspatial/ik/dls.hpp` — damped least-squares (Nakamura-
     Hanafusa) iterative IK with body-frame Lie-tangent error.
