@@ -122,6 +122,8 @@ nav:
       - In code: 10_dynamics_RNEA/04_in_code.md
       - Validating against Pinocchio: 10_dynamics_RNEA/05_validation.md
       - Exercises: 10_dynamics_RNEA/exercises.md
+  - "10b · RNEA derivatives (advanced)":
+      - Overview: 10b_rnea_derivatives/README.md
   - "11 · ABA and CRBA":
       - Overview: 11_ABA_and_CRBA/README.md
       - Forward vs inverse: 11_ABA_and_CRBA/01_forward_vs_inverse.md
