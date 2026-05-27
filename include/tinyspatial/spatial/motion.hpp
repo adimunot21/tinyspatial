@@ -59,8 +59,16 @@ class Motion {
 }
 
 /// SE(3) action on a motion: `M' = Ad_T · M`.
+///
+/// Inline expansion of `Ad_T = [[R, 0], [[t]_x R, R]]`:
+///   new_w = R * w
+///   new_v = R * v + t × new_w
+/// 24 ops vs constructing a 6×6 adjoint and multiplying (72 ops + temporary).
 [[nodiscard]] inline Motion operator*(const SE3& t, const Motion& m) {
-  return Motion(t.adjoint() * m.vector());
+  const Matrix3 r = t.rotation().matrix();
+  const Vector3 new_w = r * m.angular();
+  const Vector3 new_v = r * m.linear() + t.translation().cross(new_w);
+  return Motion(new_w, new_v);
 }
 
 }  // namespace tinyspatial

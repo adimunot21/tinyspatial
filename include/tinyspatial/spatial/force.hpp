@@ -61,13 +61,16 @@ class Force {
 
 /// SE(3) action on a wrench: `F' = Ad_T⁻ᵀ · F`. The dual (force) adjoint in
 /// angular-first ordering is `[[R, [t]_× R], [0, R]]`.
+///
+/// Inline expansion:
+///   new_f_linear  = R · f_linear           (lower-right block)
+///   new_f_torque  = R · f_angular + t × new_f_linear
+/// 24 ops vs constructing the 6×6 dual adjoint and multiplying (~80 ops).
 [[nodiscard]] inline Force operator*(const SE3& t, const Force& f) {
   const Matrix3 r = t.rotation().matrix();
-  Matrix6 dual = Matrix6::Zero();
-  dual.topLeftCorner<3, 3>() = r;
-  dual.bottomRightCorner<3, 3>() = r;
-  dual.topRightCorner<3, 3>() = skew(t.translation()) * r;
-  return Force(dual * f.vector());
+  const Vector3 new_linear = r * f.linear();
+  const Vector3 new_angular = r * f.angular() + t.translation().cross(new_linear);
+  return Force(new_angular, new_linear);
 }
 
 }  // namespace tinyspatial

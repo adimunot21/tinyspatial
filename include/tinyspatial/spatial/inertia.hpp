@@ -86,8 +86,22 @@ class SpatialInertia {
 };
 
 /// Inertia acting on a motion gives a momentum (a force): `F = I · M`.
+///
+/// Inline expansion of the angular-first spatial-inertia form
+/// `[[I_O, m·c×], [-m·c×, m·I]]`:
+///   new_angular = I_O · ω + m · (c × v)
+///   new_linear  = m · (v − c × ω)
+/// where `I_O = I_com − m·c×·c×` (parallel-axis shift to origin).
+/// Saves both the 6×6 matrix construction and the matrix-vector multiply
+/// against the dense form (~80 ops vs ~30 ops).
 [[nodiscard]] inline Force operator*(const SpatialInertia& i, const Motion& m) {
-  return Force(i.matrix6() * m.vector());
+  const Vector3& c = i.com();
+  const Scalar mass = i.mass();
+  const Vector3 c_cross_v = c.cross(m.linear());
+  const Vector3 c_cross_w = c.cross(m.angular());
+  const Vector3 new_angular = i.inertia_origin() * m.angular() + mass * c_cross_v;
+  const Vector3 new_linear = mass * (m.linear() - c_cross_w);
+  return Force(new_angular, new_linear);
 }
 
 /// SE(3) action on a spatial inertia. With `T = (R, t)` taking body-frame
