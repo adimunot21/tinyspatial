@@ -37,7 +37,6 @@
 
 #include <vector>
 
-#include "tinyspatial/algo/crba.hpp"  // joint_motion_subspace
 #include "tinyspatial/algo/forward_kinematics.hpp"
 #include "tinyspatial/algo/rnea.hpp"  // joint_subspace_motion
 #include "tinyspatial/core/types.hpp"
@@ -96,7 +95,7 @@ inline void aba(const Model& model, Data& data, const Eigen::Ref<const VectorX>&
   for (int i = njoints - 1; i >= 0; --i) {
     const Joint& j = model.joints[i];
     const int joint_nv = nv(j);
-    const Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s_i = detail::joint_motion_subspace(j);
+    const Matrix6X& s_i = model.motion_subspace[i];
 
     Matrix6 ia_articulated = i_a[i];
     Vector6 pa_articulated = p_a[i];
@@ -127,7 +126,7 @@ inline void aba(const Model& model, Data& data, const Eigen::Ref<const VectorX>&
   for (int i = 0; i < njoints; ++i) {
     const Joint& j = model.joints[i];
     const int joint_nv = nv(j);
-    const Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s_i = detail::joint_motion_subspace(j);
+    const Matrix6X& s_i = model.motion_subspace[i];
     const SE3 i_from_parent = data.pose_in_parent[i].inverse();
 
     const Motion a_parent_in_i = (model.parent[i] == -1)

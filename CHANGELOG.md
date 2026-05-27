@@ -8,6 +8,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **Phase 9c — Cache joint motion subspaces in Model (-42% CRBA, -12% RNEA).**
+  - Added `Model::motion_subspace` (`std::vector<Matrix6X>`), filled in
+    `add_joint` from a canonical `joint_motion_subspace(Joint)` helper in
+    `joint.hpp`. The matrix `S_i` (6 × nv_i) is a pure function of the
+    joint variant; no need to recompute it on every CRBA / ABA call.
+  - CRBA inner loop and walk-up now read `model.motion_subspace[i]`
+    directly: no per-call heap allocation for the dynamic-size matrix,
+    no per-call `std::visit` dispatch. Franka: 6709 → 3893 ns (**-42%**).
+  - ABA now reads the cached subspaces too. Franka: 12191 → 11154 ns (-9%).
+  - RNEA derivatives picks up the same pattern. Franka: 19753 → 17874 ns
+    (-10%). Removed the duplicated `rnea_deriv_joint_subspace` helper.
+  - Pinocchio parity preserved at 1e-13 / 1e-14 (no FP-order change in
+    the affected paths).
+  - **Cumulative Phase 9 result on Franka**: RNEA 4540 → 2567 ns (**-43%
+    total**), CRBA 6776 → 3893 ns (**-43% total**). Now at ~1.6× of
+    Pinocchio C++ on RNEA (CLAUDE.md §12 target is 1.4×).
+  - `docs/BENCHMARKS.md` regenerated with cumulative table and the new
+    "future work" list (ABA articulated-inertia, cached rotation matrices).
+
 - **Phase 9b — Hot-path optimisation pass (-36% RNEA on Franka).**
   - **`forward_kinematics`**: replaced the per-joint `const VectorX q_slice =
     q.segment(...)` heap allocation with a zero-copy `Eigen::Ref<const VectorX>`

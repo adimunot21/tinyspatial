@@ -70,6 +70,38 @@ using Joint = std::variant<JointFixed, JointRevolute, JointPrismatic, JointFloat
   return std::visit([](const auto& x) { return x.nv(); }, j);
 }
 
+/// Joint motion subspace `S_j` as a 6 × nv(j) matrix in the joint's body
+/// frame (angular-first ordering). For revolute joints column 0 is
+/// `(axis; 0)`; for prismatic, `(0; axis)`; for fixed, an empty 6×0 matrix;
+/// for floating, the 6×6 identity. Pure function of the joint variant —
+/// can be cached at `Model::add_joint` time so the hot path (CRBA, RNEA
+/// inward pass) avoids both the `std::visit` and the per-call heap
+/// allocation for the dynamic-sized matrix.
+[[nodiscard]] inline Matrix6X joint_motion_subspace(const Joint& j) {
+  return std::visit(
+      [](const auto& jj) -> Matrix6X {
+        using JT = std::decay_t<decltype(jj)>;
+        if constexpr (std::is_same_v<JT, JointRevolute>) {
+          Matrix6X s(6, 1);
+          s.setZero();
+          s.template block<3, 1>(0, 0) = jj.axis;
+          return s;
+        } else if constexpr (std::is_same_v<JT, JointPrismatic>) {
+          Matrix6X s(6, 1);
+          s.setZero();
+          s.template block<3, 1>(3, 0) = jj.axis;
+          return s;
+        } else if constexpr (std::is_same_v<JT, JointFloating>) {
+          Matrix6X s(6, 6);
+          s.setIdentity();
+          return s;
+        } else {  // JointFixed
+          return Matrix6X(6, 0);
+        }
+      },
+      j);
+}
+
 /// Joint's local SE(3) transform, given the slice of `q` belonging to this joint.
 /// `q_slice` must have `nq(j)` rows.
 [[nodiscard]] inline SE3 joint_transform(const Joint& j, const Eigen::Ref<const VectorX>& q_slice) {

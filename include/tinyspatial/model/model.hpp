@@ -51,6 +51,11 @@ class Model {
   std::vector<int> idx_q;
   /// First index into the flat `v` (and `a`, `f`) vector for each joint.
   std::vector<int> idx_v;
+  /// Pre-computed motion subspace `S_i` (6 × nv_i) for each joint, in the
+  /// joint's body frame. Filled by `add_joint`. Cached here so hot algorithms
+  /// (CRBA, RNEA's `joint_subspace_*` helpers) can read it directly without
+  /// re-visiting the variant on every call.
+  std::vector<Matrix6X> motion_subspace;
 
   [[nodiscard]] int njoints() const { return static_cast<int>(joints.size()); }
   [[nodiscard]] int nq() const { return nq_; }
@@ -72,6 +77,7 @@ class Model {
     inertia.push_back(link_inertia);
     idx_q.push_back(nq_);
     idx_v.push_back(nv_);
+    motion_subspace.push_back(joint_motion_subspace(joints.back()));
     nq_ += this_nq;
     nv_ += this_nv;
     return idx;
