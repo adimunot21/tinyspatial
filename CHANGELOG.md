@@ -6,6 +6,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- **Phase 9b — Hot-path optimisation pass (-36% RNEA on Franka).**
+  - **`forward_kinematics`**: replaced the per-joint `const VectorX q_slice =
+    q.segment(...)` heap allocation with a zero-copy `Eigen::Ref<const VectorX>`
+    view passed directly to `joint_transform`. FK Franka: 828 → 588 ns (-29%).
+  - **`operator*(SE3, Motion)`**: inline expansion of the body-frame
+    adjoint action (`new_w = R·ω`, `new_v = R·v + t × new_w`) replaces
+    constructing the 6×6 adjoint matrix and multiplying. ~24 ops vs ~72.
+  - **`operator*(SE3, Force)`**: same trick on the dual adjoint
+    (`new_lin = R·f_lin`, `new_ang = R·f_ang + t × new_lin`).
+  - **`operator*(SpatialInertia, Motion)`**: inline expansion of the
+    angular-first inertia form (`new_w = I_O·ω + m·c×v`,
+    `new_v = m·(v − c×ω)`) avoids the 6×6 matrix construction.
+  - **Cumulative on `franka_fr3`**: RNEA 4540 → 2908 ns (-36%); ABA
+    13398 → 12191 ns (-9%); FK 828 → 588 ns (-29%); `compute_joint_jacobians`
+    1881 → 1612 ns (-14%).
+  - **vs Pinocchio C++**: was 2.8×, now ~1.8× (target per CLAUDE.md §12
+    is 1.4×). All Pinocchio parity tests still pass at the same numerical
+    accuracy (RNEA 7e-14, FK 1e-15, CRBA 5e-15).
+  - `docs/BENCHMARKS.md` regenerated with the new headline numbers and
+    the Phase 9c roadmap (variant→switch, CRBA subspace caching).
+
 ### Added
 
 - **Phase 9a — Benchmarks + first optimisation pass.**

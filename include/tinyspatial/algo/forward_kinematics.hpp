@@ -26,8 +26,11 @@ inline void forward_kinematics(const Model& model, Data& data, const Eigen::Ref<
   for (int i = 0; i < model.njoints(); ++i) {
     const Joint& j = model.joints[i];
     const int joint_nq = nq(j);
-    const VectorX q_slice = q.segment(model.idx_q[i], joint_nq);
-    const SE3 local = model.placement[i] * joint_transform(j, q_slice);
+    // `q.segment(...)` is a zero-copy Block view; `Ref<const VectorX>` binds
+    // to it directly. Using `const VectorX q_slice = ...` here would heap-
+    // allocate per joint per FK call, which is the dominant cost on small
+    // arms.
+    const SE3 local = model.placement[i] * joint_transform(j, q.segment(model.idx_q[i], joint_nq));
     data.pose_in_parent[i] = local;
     const int parent_idx = model.parent[i];
     data.pose_in_world[i] = (parent_idx == -1) ? local : data.pose_in_world[parent_idx] * local;

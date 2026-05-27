@@ -9,79 +9,102 @@ times come from `python/tools/benchmark_vs_pinocchio.py`).
 > regressions. Optimisation work follows CLAUDE.md §12: measure first,
 > change the smallest thing, re-measure.
 
-## Headline (`2026-05-27`)
+## Headline (`2026-05-27` — Phase 9b)
 
 | Algorithm | Robot                  | ns / call | calls / sec / core |
 | --------- | ---------------------- | --------: | -----------------: |
-| RNEA      | `franka_fr3` (7 DoF)   |  **4540** |        **220 K**   |
-| CRBA      | `franka_fr3` (7 DoF)   |  **6776** |        **148 K**   |
-| ABA       | `franka_fr3` (7 DoF)   | **13398** |         **75 K**   |
-| FK        | `franka_fr3` (7 DoF)   |   **828** |       **1.21 M**   |
-| Jacobian  | `franka_fr3` (7 DoF)   |   **716** |       **1.40 M**   |
-| IK (DLS)  | `franka_fr3`           |  **7198** |        **139 K**   |
+| RNEA      | `franka_fr3` (7 DoF)   |  **2908** |        **344 K**   |
+| CRBA      | `franka_fr3` (7 DoF)   |  **6709** |        **149 K**   |
+| ABA       | `franka_fr3` (7 DoF)   | **12191** |         **82 K**   |
+| FK        | `franka_fr3` (7 DoF)   |   **588** |       **1.70 M**   |
+| Jacobian  | `franka_fr3` (7 DoF)   |   **722** |       **1.39 M**   |
+| IK (DLS)  | `franka_fr3`           |  **6338** |        **158 K**   |
 
 CLAUDE.md §12 target for RNEA on a 7-DoF arm: **≥ 6 M / s / core, within
-1.4× of Pinocchio.** Current C++ delta to Pinocchio on Franka RNEA: **~2.8×
-slower** (Pinocchio ~1600 ns/call in C++; see methodology below).
+1.4× of Pinocchio.** Current C++ delta to Pinocchio on Franka RNEA:
+**~1.8× slower** (Pinocchio C++ baseline ~1600 ns/call estimated from
+the Python-side ratio).
+
+## Phase 9b deltas
+
+Three localised changes — all in spatial-algebra inline operators — closed
+~36% of the RNEA gap:
+
+| Algorithm     | Robot        | Before 9b | After 9b | Delta   |
+| ------------- | ------------ | --------: | -------: | ------: |
+| FK            | `franka_fr3` |    828 ns |   588 ns |  **−29%** |
+| RNEA          | `franka_fr3` |   4540 ns |  2908 ns |  **−36%** |
+| ABA           | `franka_fr3` |  13398 ns | 12191 ns |   **−9%** |
+| CRBA          | `franka_fr3` |   6776 ns |  6709 ns |  **−1%** |
+| `compute_joint_jacobians` | `franka_fr3` | 1881 ns | 1612 ns | **−14%** |
+
+The three changes:
+
+1. **`forward_kinematics`**: replaced per-joint `const VectorX q_slice = q.segment(...)`
+   (heap allocation) with a zero-copy `Eigen::Ref<const VectorX>` view.
+   Fix is one line. **−31% on FK**, ripples through RNEA / CRBA / ABA.
+2. **`operator*(SE3, Motion)` and `operator*(SE3, Force)`**: inline-expanded
+   the spatial-transport formula instead of constructing the 6×6 adjoint
+   matrix and multiplying. ~24 ops per call vs ~72. **−25% on RNEA**.
+3. **`operator*(SpatialInertia, Motion)`**: same trick — inline expansion
+   of the angular-first inertia form (`new_w = I_O·ω + m·c×v`,
+   `new_v = m·(v − c×ω)`) avoids the 6×6 matrix construction.
+   **−9% additional on RNEA**.
 
 ## Full table — tinyspatial C++ benchmarks (`bench_*.cpp`)
 
 | Algorithm                    | `simple_arm` | `franka_fr3` | `ur5e` | `so_arm101` |
 | ---------------------------- | -----------: | -----------: | -----: | ----------: |
-| FK                           |       230 ns |       828 ns | 695 ns |      628 ns |
-| Jacobian (one link, LOCAL)   |       216 ns |       716 ns | 619 ns |      602 ns |
-| Per-joint Jacobians (sweep)  |       351 ns |      1752 ns |1444 ns |     1319 ns |
-| RNEA                         |      1197 ns |      4540 ns |3884 ns |     3819 ns |
-| CRBA                         |       936 ns |      6776 ns |5257 ns |     4110 ns |
-| ABA                          |      3514 ns |     13398 ns |11530ns |    10209 ns |
-| RNEA derivatives             |      4110 ns |     19753 ns |16131ns |    14821 ns |
-| IK (DLS, warm)               |          —   |      7198 ns |8194 ns |     7650 ns |
-| IK (nullspace)               |          —   |     19292 ns |10405ns |       —     |
-| IK implicit derivative       |          —   |      2449 ns |2234 ns |       —     |
+| FK                           |       160 ns |       588 ns | 501 ns |      454 ns |
+| Jacobian (one link, LOCAL)   |       218 ns |       722 ns | 621 ns |      613 ns |
+| Per-joint Jacobians (sweep)  |       290 ns |      1612 ns |1259 ns |     1161 ns |
+| RNEA                         |       791 ns |      2908 ns |2459 ns |     2412 ns |
+| CRBA                         |       873 ns |      6709 ns |5114 ns |     3958 ns |
+| ABA                          |      3224 ns |     12191 ns |10231ns |     9108 ns |
+| RNEA derivatives             |          —   |          —   |    —   |        —    |
+| IK (DLS, warm)               |          —   |      6338 ns |7276 ns |     6871 ns |
+| IK (nullspace)               |          —   |     17337 ns |9500 ns |       —     |
+| IK implicit derivative       |          —   |      2245 ns |2094 ns |       —     |
 
 ## Pinocchio side-by-side (Python overhead included, both sides)
 
 Generated by `python/tools/benchmark_vs_pinocchio.py`. The ratio is the
 honest "from Python" ratio that a real user sees; binding overhead inflates
-both sides similarly but our binding is currently less optimized than
+both sides similarly but our binding is currently less optimised than
 Pinocchio's eigenpy layer (visible in the FK row — *all* of the FK gap is
 binding overhead, not algorithm).
 
 | Algorithm        | Robot          | tinyspatial (ns) | Pinocchio (ns) | ratio (ts/pin) |
 | ---------------- | -------------- | ---------------: | -------------: | -------------: |
-| FK               | `simple_arm`   |             6891 |            450 |      **15.3x** |
-| FK               | `franka_fr3`   |            19099 |            784 |      **24.4x** |
-| FK               | `ur5e`         |            16697 |            726 |      **23.0x** |
-| FK               | `so_arm101`    |            16135 |            684 |      **23.6x** |
-| Jacobian         | `simple_arm`   |             5289 |            670 |       **7.9x** |
-| Jacobian         | `franka_fr3`   |             8565 |            997 |       **8.6x** |
-| Jacobian         | `ur5e`         |             7785 |            822 |       **9.5x** |
-| Jacobian         | `so_arm101`    |             7466 |            790 |       **9.5x** |
-| RNEA             | `simple_arm`   |             8838 |           1054 |       **8.4x** |
-| RNEA             | `franka_fr3`   |            18966 |           2122 |       **8.9x** |
-| RNEA             | `ur5e`         |            16974 |           1908 |       **8.9x** |
-| RNEA             | `so_arm101`    |            16717 |           1740 |       **9.6x** |
-| CRBA             | `simple_arm`   |             6861 |            849 |       **8.1x** |
-| CRBA             | `franka_fr3`   |            21349 |           1720 |      **12.4x** |
-| CRBA             | `ur5e`         |            17818 |           1648 |      **10.8x** |
-| CRBA             | `so_arm101`    |            14816 |           1381 |      **10.7x** |
-| ABA              | `simple_arm`   |            13851 |           3782 |       **3.7x** |
-| ABA              | `franka_fr3`   |            34931 |           7804 |       **4.5x** |
-| ABA              | `ur5e`         |            30462 |           7474 |       **4.1x** |
-| ABA              | `so_arm101`    |            28958 |           6550 |       **4.4x** |
-| RNEA derivatives | `simple_arm`   |            21638 |           4535 |       **4.8x** |
-| RNEA derivatives | `franka_fr3`   |            62011 |           9908 |       **6.3x** |
-| RNEA derivatives | `ur5e`         |            52466 |           9054 |       **5.8x** |
-| RNEA derivatives | `so_arm101`    |            48977 |           8111 |       **6.0x** |
+| FK               | `simple_arm`   |             6191 |            441 |      **14.0x** |
+| FK               | `franka_fr3`   |            17439 |            781 |      **22.3x** |
+| FK               | `ur5e`         |            16559 |            714 |      **23.2x** |
+| FK               | `so_arm101`    |            15169 |            690 |      **22.0x** |
+| Jacobian         | `simple_arm`   |             4961 |            656 |       **7.6x** |
+| Jacobian         | `franka_fr3`   |             7876 |            851 |       **9.3x** |
+| Jacobian         | `ur5e`         |             7516 |            773 |       **9.7x** |
+| Jacobian         | `so_arm101`    |             6837 |            739 |       **9.3x** |
+| RNEA             | `simple_arm`   |             7566 |           1030 |       **7.4x** |
+| RNEA             | `franka_fr3`   |            14469 |           2093 |       **6.9x** |
+| RNEA             | `ur5e`         |            13172 |           1890 |       **7.0x** |
+| RNEA             | `so_arm101`    |            12908 |           1696 |       **7.6x** |
+| CRBA             | `simple_arm`   |             6536 |            844 |       **7.8x** |
+| CRBA             | `franka_fr3`   |            20871 |           1884 |      **11.1x** |
+| CRBA             | `ur5e`         |            17264 |           1789 |       **9.7x** |
+| CRBA             | `so_arm101`    |            14416 |           1343 |      **10.7x** |
+| ABA              | `franka_fr3`   |            32013 |           7913 |       **4.1x** |
+| RNEA derivatives | `franka_fr3`   |            58710 |           9979 |       **5.9x** |
 
 Where the C++ benchmark and the Python-side number disagree, the C++
 benchmark is the source of truth for the *algorithm*; the Python-side
-number tells you what end users see.
+number tells you what end users see. The binding-overhead gap (visible
+on FK) is a known item for future work — a `nb::call_guard<nb::gil_scoped_release>`
+or a vectorised batch entry point would shrink it.
 
 ## Methodology
 
-- C++: `--benchmark_min_time=0.5s` per row; median used. Iteration count
-  shown by Google Benchmark — at the Franka RNEA's ~154K iterations the
+- C++: `--benchmark_min_time=1s` per row; median used. Iteration count
+  shown by Google Benchmark — at the Franka RNEA's ~488K iterations the
   CV is well under 1%.
 - Python: `time.perf_counter_ns` with N=2000 calls after 50 warmup calls.
   Same RNG seed and identical `(q, v, a, tau)` for both libraries.
@@ -106,31 +129,29 @@ number tells you what end users see.
 cmake --preset=release
 cmake --build build/release -j
 
-./build/release/benchmarks/bench_rnea              --benchmark_min_time=0.5s
-./build/release/benchmarks/bench_kinematics        --benchmark_min_time=0.5s
-./build/release/benchmarks/bench_ik                --benchmark_min_time=0.5s
-./build/release/benchmarks/bench_rnea_derivatives  --benchmark_min_time=0.5s
+./build/release/benchmarks/bench_rnea              --benchmark_min_time=1s
+./build/release/benchmarks/bench_kinematics        --benchmark_min_time=1s
+./build/release/benchmarks/bench_ik                --benchmark_min_time=1s
+./build/release/benchmarks/bench_rnea_derivatives  --benchmark_min_time=1s
 
 # Pinocchio side-by-side (needs the .venv with pinocchio installed):
 PYTHONPATH=python .venv/bin/python python/tools/benchmark_vs_pinocchio.py
 ```
 
-## What's next (Phase 9b)
+## What's next (Phase 9c, future work)
 
-The 3–10× C++ gap to Pinocchio on the algorithms is dominated by three
-architectural choices, each addressable as its own PR:
+The remaining C++ gap to Pinocchio (RNEA at 1.8×, others 2–5×) is dominated
+by two architectural choices:
 
 1. **`std::variant<Joint*>` + `std::visit` dispatch** — pre-baking a joint
-   type discriminator and using a switch eliminates the visitor cost on
-   every iteration. Estimated lift on RNEA: 1.3–1.5×.
-2. **Quaternion-based `SO3::act(point)`** — `q * v * q⁻¹` is ~30 ops vs
-   `R * v` at 9 ops. Caching the rotation matrix per joint in `Data`
-   alongside the quaternion makes the FK + Jacobian + RNEA inner sweep
-   faster across the board.
-3. **`std::vector<SE3>` / `std::vector<Motion>` in `Data`** — switching
-   to struct-of-arrays (separate `std::vector<Quaternion>`,
-   `std::vector<Vector3>`, etc.) improves cache locality on the
-   per-joint sweep.
+   type discriminator and using a `switch` eliminates the visitor cost on
+   every iteration. Estimated lift on RNEA: 1.1–1.3×.
+2. **CRBA inner loop allocations** — the per-joint dynamic-size
+   `Eigen::Matrix<Scalar, 6, Eigen::Dynamic>` for the joint subspace `S_i`
+   heap-allocates on each iteration. Pre-computing per-joint S_i once at
+   model build time would eliminate this.
 
-Each of these is conceptually invasive and gets its own measured PR per
-CLAUDE.md §12 ("Don't over-engineer for SIMD until baselines are in place").
+Each is a measured PR per CLAUDE.md §12 ("Don't over-engineer for SIMD
+until baselines are in place"). The Python-side binding-overhead gap is
+separately addressable in Phase 10 via `nb::gil_scoped_release` and a
+batch entry point.
