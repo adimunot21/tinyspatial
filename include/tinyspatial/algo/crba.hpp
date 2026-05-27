@@ -45,38 +45,6 @@
 
 namespace tinyspatial {
 
-namespace detail {
-
-/// Joint motion subspace `S_j` as a 6 × nv(j) matrix in the joint's body
-/// frame. Angular-first ordering throughout.
-[[nodiscard]] inline Eigen::Matrix<Scalar, 6, Eigen::Dynamic> joint_motion_subspace(
-    const Joint& j) {
-  return std::visit(
-      [](const auto& jj) -> Eigen::Matrix<Scalar, 6, Eigen::Dynamic> {
-        using JT = std::decay_t<decltype(jj)>;
-        if constexpr (std::is_same_v<JT, JointRevolute>) {
-          Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s(6, 1);
-          s.setZero();
-          s.template block<3, 1>(0, 0) = jj.axis;
-          return s;
-        } else if constexpr (std::is_same_v<JT, JointPrismatic>) {
-          Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s(6, 1);
-          s.setZero();
-          s.template block<3, 1>(3, 0) = jj.axis;
-          return s;
-        } else if constexpr (std::is_same_v<JT, JointFloating>) {
-          Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s(6, 6);
-          s.setIdentity();
-          return s;
-        } else {  // JointFixed
-          return Eigen::Matrix<Scalar, 6, Eigen::Dynamic>(6, 0);
-        }
-      },
-      j);
-}
-
-}  // namespace detail
-
 /// Composite Rigid Body Algorithm. Writes the full (symmetric) joint-space
 /// inertia matrix `M(q)` into `M`.
 ///
@@ -100,20 +68,21 @@ inline void crba(const Model& model, Data& data, const Eigen::Ref<const VectorX>
   m_out.setZero();
 
   // Phase 2: for each joint i, compute its diagonal block then walk up the
-  // parent chain to fill the cross-coupling blocks.
+  // parent chain to fill the cross-coupling blocks. Reuses `model.motion_subspace`
+  // (pre-computed in Model::add_joint) so this loop never allocates a fresh
+  // S matrix per joint.
   for (int i = 0; i < njoints; ++i) {
-    const Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s_i =
-        detail::joint_motion_subspace(model.joints[i]);
+    const Matrix6X& s_i = model.motion_subspace[i];
     const int nv_i = static_cast<int>(s_i.cols());
     if (nv_i == 0) {
       continue;  // Fixed joint contributes nothing to M, but still transports.
     }
 
     // F = ic[i] · S_i  (6 × nv_i), in body i's frame.
-    Eigen::Matrix<Scalar, 6, Eigen::Dynamic> f = ic[i].matrix6() * s_i;
+    Matrix6X f = ic[i].matrix6() * s_i;
 
     // Diagonal block: M[i, i] = S_iᵀ F.
-    m_out.block(model.idx_v[i], model.idx_v[i], nv_i, nv_i) = s_i.transpose() * f;
+    m_out.block(model.idx_v[i], model.idx_v[i], nv_i, nv_i).noalias() = s_i.transpose() * f;
 
     // Walk up the parent chain, transporting F into each ancestor's frame
     // via the force Plücker transform of the joint we just stepped through.
@@ -122,17 +91,16 @@ inline void crba(const Model& model, Data& data, const Eigen::Ref<const VectorX>
     while (j >= 0) {
       // F now lives in `child`'s frame; transport into `j`'s frame.
       f = force_plucker(data.pose_in_parent[child]) * f;
-      const Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s_j =
-          detail::joint_motion_subspace(model.joints[j]);
+      const Matrix6X& s_j = model.motion_subspace[j];
       const int nv_j = static_cast<int>(s_j.cols());
       if (nv_j > 0) {
-        const Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> block = s_j.transpose() * f;
         // Pinocchio stores M with rows = parent index of the pair (lower of
         // the two), cols = the joint we started from. We follow the convention
         // M[ancestor, descendant] = S_ancestorᵀ · F (transported), and mirror
         // to fill the symmetric counterpart.
-        m_out.block(model.idx_v[j], model.idx_v[i], nv_j, nv_i) = block;
-        m_out.block(model.idx_v[i], model.idx_v[j], nv_i, nv_j) = block.transpose();
+        auto block = m_out.block(model.idx_v[j], model.idx_v[i], nv_j, nv_i);
+        block.noalias() = s_j.transpose() * f;
+        m_out.block(model.idx_v[i], model.idx_v[j], nv_i, nv_j).noalias() = block.transpose();
       }
       child = j;
       j = model.parent[j];

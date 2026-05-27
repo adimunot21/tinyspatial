@@ -64,35 +64,6 @@ namespace tinyspatial {
 
 namespace detail {
 
-/// Motion subspace `S_i` of a joint as a 6 × nv(j) matrix. Same as CRBA's
-/// `joint_motion_subspace` but duplicated here to avoid a `crba.hpp` include
-/// pulling in unrelated machinery.
-[[nodiscard]] inline Eigen::Matrix<Scalar, 6, Eigen::Dynamic> rnea_deriv_joint_subspace(
-    const Joint& j) {
-  return std::visit(
-      [](const auto& jj) -> Eigen::Matrix<Scalar, 6, Eigen::Dynamic> {
-        using JT = std::decay_t<decltype(jj)>;
-        if constexpr (std::is_same_v<JT, JointRevolute>) {
-          Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s(6, 1);
-          s.setZero();
-          s.template block<3, 1>(0, 0) = jj.axis;
-          return s;
-        } else if constexpr (std::is_same_v<JT, JointPrismatic>) {
-          Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s(6, 1);
-          s.setZero();
-          s.template block<3, 1>(3, 0) = jj.axis;
-          return s;
-        } else if constexpr (std::is_same_v<JT, JointFloating>) {
-          Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s(6, 6);
-          s.setIdentity();
-          return s;
-        } else {  // JointFixed
-          return Eigen::Matrix<Scalar, 6, Eigen::Dynamic>(6, 0);
-        }
-      },
-      j);
-}
-
 /// `Phi(f)` such that `Phi(f) · m == cross_force(m) · f` for any motion m.
 /// For `f = (τ; v_f)`: `Phi = [[-[τ]_×, -[v_f]_×]; [-[v_f]_×, 0]]`.
 [[nodiscard]] inline Matrix6 force_cross_motion_phi(const Eigen::Ref<const Vector6>& f) {
@@ -138,7 +109,7 @@ inline void rnea_derivatives(const Model& model, Data& data, const Eigen::Ref<co
     const Joint& j = model.joints[i];
     const int nv_i = nv(j);
     const int idx_v_i = model.idx_v[i];
-    const Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s_i = detail::rnea_deriv_joint_subspace(j);
+    const Matrix6X& s_i = model.motion_subspace[i];
     const SE3 i_from_parent = data.pose_in_parent[i].inverse();
     const Matrix6 x_pi = i_from_parent.adjoint();  // motion adjoint, parent → body i.
 
@@ -231,7 +202,7 @@ inline void rnea_derivatives(const Model& model, Data& data, const Eigen::Ref<co
     const Joint& j = model.joints[i];
     const int nv_i = nv(j);
     const int idx_v_i = model.idx_v[i];
-    const Eigen::Matrix<Scalar, 6, Eigen::Dynamic> s_i = detail::rnea_deriv_joint_subspace(j);
+    const Matrix6X& s_i = model.motion_subspace[i];
 
     if (nv_i > 0) {
       // Project tau-slice derivatives.
