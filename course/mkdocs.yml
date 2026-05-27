@@ -148,6 +148,12 @@ nav:
       - ABA in code: 11_ABA_and_CRBA/04_in_code.md
       - Validating against Pinocchio: 11_ABA_and_CRBA/05_validation.md
       - Exercises: 11_ABA_and_CRBA/exercises.md
+  - "14 · Python bindings":
+      - Overview: 14_python_bindings/README.md
+      - Why we wrap C++ in Python: 14_python_bindings/01_why_wrap_cpp.md
+      - Reading the nanobind glue: 14_python_bindings/02_reading_the_glue.md
+      - Using tinyspatial from Python: 14_python_bindings/03_using_from_python.md
+      - Pitfalls and good habits: 14_python_bindings/04_pitfalls.md
 
 # Don't fail the local build over not-yet-written cross-links between chapters.
 validation:

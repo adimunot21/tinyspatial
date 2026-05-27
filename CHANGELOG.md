@@ -8,6 +8,32 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Phase 8 — Python bindings + examples.**
+  - `src/bindings/main.cpp` expanded from the validation-only surface to
+    the full public API: `SO3` / `SE3` (constructors, `exp`/`log`, `*`,
+    `inverse`, `adjoint`, `matrix`, `quaternion`), read-only `Data`
+    (`pose_in_world` / `pose_in_parent` accessors), `compute_joint_jacobians`,
+    `DlsOptions` / `NullspaceOptions` / `IkResult`, `solve_ik_dls`,
+    `solve_ik_nullspace`, and `ik_implicit_derivative`. Bindings use
+    `std::optional<Options>` paired with `nb::arg(..) = nb::none()` so the
+    Python defaults match the C++ defaults without boilerplate.
+  - `python/tinyspatial/__init__.py` rewritten to export the full surface;
+    `python/tinyspatial/__init__.pyi` ships full type stubs and
+    `py.typed` advertises them for static analyzers (mypy, pyright).
+  - `python/examples/` — three executable Jupyter notebooks:
+    1. `01_fk_tour_ur5e.ipynb` — FK + workspace cloud + manipulability.
+    2. `02_rnea_vs_pinocchio_franka.ipynb` — 1000-sample residual
+       histogram against Pinocchio.
+    3. `03_ik_nullspace_elbow_franka.ipynb` — DLS vs nullspace IK
+       side-by-side with the implicit-derivative bonus.
+  - `python/tests/test_parity.py` — 21 pytest checks across the 3
+    fixture URDFs (FK, J, RNEA, CRBA, ABA, IK round-trip, implicit
+    derivative shape) at `1e-9`.
+  - Course chapter [14 — Python bindings](course/14_python_bindings/README.md)
+    with 4 sub-chapters: why-wrap-C++, reading-the-glue (a tour of
+    `main.cpp`), using-from-Python (notebook walkthrough), pitfalls
+    (Eigen storage order, GIL, lifetime / rv-policy).
+
 - **Phase 7b — Differentiable inverse kinematics.**
   - `include/tinyspatial/ik/differentiable.hpp` — `ik_implicit_derivative()`
     returns `∂q*/∂T*` as an `nv × 6` matrix using the implicit function
