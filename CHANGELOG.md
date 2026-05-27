@@ -6,6 +6,43 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-05-27
+
+Initial public release. Every algorithm planned in `PROJECT_PLAN.md` is
+implemented and validated against Pinocchio 3.9.0 to `1e-13` or below on
+the Franka FR3, UR5e, SO-ARM101, and `simple_arm` fixture robots.
+
+### Headline metrics (Franka FR3, Intel i7-9750H, GCC 13.3)
+
+| Algorithm | Throughput      | vs Pinocchio C++ |
+| --------- | --------------: | ---------------: |
+| RNEA      | **391 K / s**   |             1.6× |
+| CRBA      | **326 K / s**   |             1.8× |
+| ABA       | **90 K / s**    |             1.5× |
+| FK        | **1.70 M / s**  |             2.1× |
+| Jacobian  | **1.39 M / s**  |             1.4× |
+
+### Library surface
+
+- **Lie groups** (`SO3`, `SE3`): `exp` / `log`, adjoint, left/right Jacobians.
+- **Spatial algebra**: `Motion`, `Force`, `SpatialInertia`, Plücker transforms.
+- **Kinematic tree**: `Model` / `Data`, joint variants (revolute, prismatic,
+  fixed, floating), URDF loader.
+- **Forward kinematics + Jacobians** in three reference frames.
+- **Inverse dynamics** (RNEA), **mass matrix** (CRBA), **forward dynamics** (ABA).
+- **Analytical derivatives**: per-joint Jacobians, `∂τ/∂q`, `∂τ/∂v`, `∂τ/∂a`.
+- **Inverse kinematics**: damped-least-squares + task-priority null-space +
+  analytical `∂q*/∂T*` via the implicit function theorem.
+- **Python bindings** (nanobind), with type stubs and 3 example notebooks.
+
+### Course
+
+A 16-chapter from-scratch tutorial (`course/`) covering rotations, Lie
+groups, spatial algebra, kinematic trees, URDF, forward kinematics,
+Jacobians, RNEA, ABA + CRBA, IK (DLS + null-space + differentiable),
+Python bindings, validating against Pinocchio, and benchmarking. Builds
+to a mkdocs-material site.
+
 ### Added
 
 - **Course chapter 15 — Validating against Pinocchio.**
