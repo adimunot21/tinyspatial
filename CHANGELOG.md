@@ -8,6 +8,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **Phase 9d — Force-Plücker apply without 6×6 construction (-21% CRBA).**
+  - Added `force_plucker_apply_matrix(SE3, Matrix6X)` in `plucker.hpp`:
+    applies the force-Plücker transform `X* = Ad_T⁻ᵀ` to a 6 × N matrix
+    via the block formula `new_top = R · top + t × (R · bot); new_bot = R · bot`,
+    without first building the 6×6 X* matrix.
+  - CRBA's parent-chain walk now uses it for the per-joint force-Plücker
+    transport. Franka: 3893 → 3070 ns (**-21%**); UR5e: 3030 → 2443 ns
+    (-19%); so_arm101: 2400 → 2013 ns (-16%).
+  - Also documented the two reverts in the same PR: caching
+    `pose_in_parent.inverse()` and `r_in_world` in `Data` is net regression
+    (the FK cost to fill the caches outweighs the savings, because
+    most algorithms call FK internally), and the Vector6
+    `force_plucker_apply` in ABA is flat (X* is already built for the
+    adjacent IA congruence). Both lessons captured in `docs/BENCHMARKS.md`.
+  - **Cumulative Phase 9 result on Franka**: CRBA 6776 → 3070 ns (**-55%
+    total**); RNEA 4540 → 2556 ns (**-44%**); both at ~1.6-1.8× of
+    Pinocchio C++.
+
 - **Phase 9c — Cache joint motion subspaces in Model (-42% CRBA, -12% RNEA).**
   - Added `Model::motion_subspace` (`std::vector<Matrix6X>`), filled in
     `add_joint` from a canonical `joint_motion_subspace(Joint)` helper in

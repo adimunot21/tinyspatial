@@ -90,7 +90,8 @@ inline void crba(const Model& model, Data& data, const Eigen::Ref<const VectorX>
     int j = model.parent[i];
     while (j >= 0) {
       // F now lives in `child`'s frame; transport into `j`'s frame.
-      f = force_plucker(data.pose_in_parent[child]) * f;
+      // Inline-applied force-Plücker: skips building the 6×6 X* matrix.
+      f = force_plucker_apply_matrix(data.pose_in_parent[child], f);
       const Matrix6X& s_j = model.motion_subspace[j];
       const int nv_j = static_cast<int>(s_j.cols());
       if (nv_j > 0) {

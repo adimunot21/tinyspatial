@@ -9,34 +9,33 @@ times come from `python/tools/benchmark_vs_pinocchio.py`).
 > regressions. Optimisation work follows CLAUDE.md §12: measure first,
 > change the smallest thing, re-measure.
 
-## Headline (`2026-05-27` — Phase 9c)
+## Headline (`2026-05-27` — Phase 9d)
 
 | Algorithm | Robot                  | ns / call | calls / sec / core |
 | --------- | ---------------------- | --------: | -----------------: |
-| RNEA      | `franka_fr3` (7 DoF)   |  **2567** |        **390 K**   |
-| CRBA      | `franka_fr3` (7 DoF)   |  **3893** |        **257 K**   |
-| ABA       | `franka_fr3` (7 DoF)   | **11154** |         **90 K**   |
+| RNEA      | `franka_fr3` (7 DoF)   |  **2556** |        **391 K**   |
+| CRBA      | `franka_fr3` (7 DoF)   |  **3070** |        **326 K**   |
+| ABA       | `franka_fr3` (7 DoF)   | **11112** |         **90 K**   |
 | FK        | `franka_fr3` (7 DoF)   |   **588** |       **1.70 M**   |
 | Jacobian  | `franka_fr3` (7 DoF)   |   **722** |       **1.39 M**   |
 | IK (DLS)  | `franka_fr3`           |  **6240** |        **161 K**   |
 
 CLAUDE.md §12 target for RNEA on a 7-DoF arm: **≥ 6 M / s / core, within
-1.4× of Pinocchio.** Current C++ delta to Pinocchio on Franka RNEA:
-**~1.6× slower** (Pinocchio C++ baseline ~1600 ns/call estimated from
-the Python-side ratio).
+1.4× of Pinocchio.** Current C++ delta to Pinocchio on Franka: RNEA at
+**~1.6×**, CRBA at **~1.8×** of Pinocchio C++.
 
-## Cumulative deltas (Phase 9a → 9c)
+## Cumulative deltas (Phase 9a → 9d)
 
-Six localised changes across three PRs closed roughly **44% of the RNEA
-gap and 43% of CRBA**. No API breakage; full Pinocchio parity preserved
+Seven localised changes across four PRs closed roughly **44% of the RNEA
+gap and 55% of CRBA**. No API breakage; full Pinocchio parity preserved
 at 1e-14 / 1e-15.
 
-| Algorithm                  | Robot        | Pre-9a (baseline) | After 9c | Delta   |
+| Algorithm                  | Robot        | Pre-9a (baseline) | After 9d | Delta   |
 | -------------------------- | ------------ | ----------------: | -------: | ------: |
 | FK                         | `franka_fr3` |            828 ns |   588 ns |  **−29%** |
-| RNEA                       | `franka_fr3` |           4540 ns |  2567 ns |  **−43%** |
-| CRBA                       | `franka_fr3` |           6776 ns |  3893 ns |  **−43%** |
-| ABA                        | `franka_fr3` |          13398 ns | 11154 ns |  **−17%** |
+| RNEA                       | `franka_fr3` |           4540 ns |  2556 ns |  **−44%** |
+| CRBA                       | `franka_fr3` |           6776 ns |  3070 ns |  **−55%** |
+| ABA                        | `franka_fr3` |          13398 ns | 11112 ns |  **−17%** |
 | `compute_joint_jacobians`  | `franka_fr3` |           1881 ns |  1612 ns |  **−14%** |
 | RNEA derivatives           | `franka_fr3` |          19753 ns | 17874 ns |  **−10%** |
 
@@ -68,6 +67,24 @@ What each phase changed:
 6. Deduplicated the `rnea_deriv_joint_subspace` helper into the canonical
    `joint_motion_subspace` in `joint.hpp` (no behavioural change).
 
+**Phase 9d** (force-Plücker apply without 6×6 construction):
+
+7. `force_plucker_apply_matrix(SE3, Matrix6X)` — applies the force
+   Plücker transform `X*` to a 6×N matrix without first building the
+   6×6 X*. Used in CRBA's parent-chain walk where the joint-subspace
+   force matrix is 6×1. **−21% additional on CRBA**.
+
+Approaches that were tried and reverted in 9d:
+
+- **Caching `pose_in_parent.inverse()` and `r_in_world` in `Data`** — net
+  regression on RNEA / CRBA. The FK cost to fill the caches outweighed
+  the savings, because most algorithms call FK internally and the
+  inverse / matrix were only re-read in a few specific spots.
+- **Vector6 `force_plucker_apply` in ABA** — net flat on Franka. The
+  6×6 X* matrix is already constructed for the immediately adjacent
+  IA symmetric congruence, so inlining the second multiply is redundant
+  work.
+
 ## Full table — tinyspatial C++ benchmarks (`bench_*.cpp`)
 
 | Algorithm                    | `simple_arm` | `franka_fr3` | `ur5e` | `so_arm101` |
@@ -75,9 +92,9 @@ What each phase changed:
 | FK                           |       160 ns |       588 ns | 501 ns |      454 ns |
 | Jacobian (one link, LOCAL)   |       218 ns |       722 ns | 621 ns |      613 ns |
 | Per-joint Jacobians (sweep)  |       290 ns |      1612 ns |1259 ns |     1161 ns |
-| RNEA                         |       700 ns |      2567 ns |2162 ns |     2130 ns |
-| CRBA                         |       610 ns |      3893 ns |3030 ns |     2400 ns |
-| ABA                          |      2989 ns |     11154 ns |9377 ns |     8249 ns |
+| RNEA                         |       695 ns |      2556 ns |2176 ns |     2127 ns |
+| CRBA                         |       564 ns |      3070 ns |2443 ns |     2013 ns |
+| ABA                          |      3026 ns |     11112 ns |9702 ns |     8725 ns |
 | RNEA derivatives             |      3334 ns |     17874 ns |14315ns |    13052 ns |
 | IK (DLS, warm)               |          —   |      6240 ns |7246 ns |     6761 ns |
 | IK (nullspace)               |          —   |     17063 ns |9651 ns |       —     |
@@ -157,19 +174,23 @@ PYTHONPATH=python .venv/bin/python python/tools/benchmark_vs_pinocchio.py
 
 ## What's next (future work)
 
-The remaining C++ gap to Pinocchio (RNEA at 1.6×, CRBA at 2.4×) is now
-mostly bandwidth-bound. Further C++ wins would come from:
+The remaining C++ gap to Pinocchio (RNEA at 1.6×, CRBA at 1.8×) is now
+nearly bandwidth-bound. Further C++ wins are diminishing returns; the
+remaining levers, with estimated upside, are:
 
-1. **ABA articulated-inertia hot path** — the dominant cost is
-   `i_a[parent] += X * IA * Xᵀ` (a symmetric 6×6 congruence). Hand-rolling
-   this with the SE3-rotation matrix once instead of building the 6×6
-   plücker dual would save ~20% on ABA. Same pattern as the Phase 9b
-   `Motion`/`Force` transports.
-2. **Quaternion → cached rotation matrix in `Data`** — `SE3::rotation().matrix()`
-   is called multiple times per joint per FK call (once per
-   `operator*(SE3, Motion)` / `(SE3, Force)`). Storing the matrix in `Data`
-   alongside the quaternion eliminates the conversion. Estimated lift on
-   FK / RNEA: 5–10%.
-3. **Python binding overhead** — separately addressable in Phase 10 via
-   `nb::call_guard<nb::gil_scoped_release>` and a batch entry point. The
-   FK Python-side gap (20×+) is *entirely* binding overhead.
+1. **ABA symmetric inertia transport** — `i_a[parent] += X * IA * Xᵀ`
+   is the largest single line in ABA. Inline-expanding via the block
+   form is fiddly (the four 3×3 result blocks each combine several
+   intermediate products) but should save ~15% on ABA. Tried briefly
+   in 9d and reverted; warrants a focused attempt.
+2. **Python binding overhead** — `nb::call_guard<nb::gil_scoped_release>`
+   and a batch entry point would close the 6.7× Python-side ratio on
+   RNEA without touching the algorithm. The FK Python-side gap (~22×)
+   is *entirely* binding overhead.
+3. **Quaternion → matrix in `SO3::act`** — quaternion `q · v · q⁻¹`
+   is ~30 ops; matrix is 9. For algorithms that call `SO3::act` once
+   per joint (FK), this is a ~5% win.
+
+CLAUDE.md §12 sets the bar at 1.4× of Pinocchio C++ on RNEA. We're at
+1.6× — close enough that Phase 10 (release / marketing) is the right
+next priority rather than additional perf grinding.

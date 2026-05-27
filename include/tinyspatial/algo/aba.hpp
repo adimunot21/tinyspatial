@@ -114,6 +114,8 @@ inline void aba(const Model& model, Data& data, const Eigen::Ref<const VectorX>&
     }
 
     if (model.parent[i] != -1) {
+      // Both transports share the 6×6 X* matrix; building it once is cheaper
+      // than two separate inline expansions.
       const Matrix6 x_force = force_plucker(data.pose_in_parent[i]);
       // Symmetric congruence: IA_parent += X* · IA_a · X*ᵀ.
       i_a[model.parent[i]].noalias() += x_force * ia_articulated * x_force.transpose();
