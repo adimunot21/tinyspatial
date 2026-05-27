@@ -8,6 +8,34 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Phase 9a — Benchmarks + first optimisation pass.**
+  - `benchmarks/bench_kinematics.cpp` — FK, single-link Jacobian,
+    `compute_joint_jacobians` rows across the 4 fixture URDFs.
+  - `benchmarks/bench_ik.cpp` — `solve_ik_dls`, `solve_ik_nullspace`,
+    `ik_implicit_derivative` rows.
+  - `benchmarks/bench_rnea_derivatives.cpp` — analytical-derivative
+    pass throughput (3–5× plain RNEA, as expected from theory).
+  - `python/tools/benchmark_vs_pinocchio.py` — Python-side
+    side-by-side timing emitting a Markdown table for
+    `docs/BENCHMARKS.md`. Avoids the C++ Pinocchio link (Boost ban,
+    cmeel libstdc++ ABI mismatch); ratios still informative.
+  - **First optimisation:** `compute_joint_jacobians` now reuses the
+    caller's vector storage on warm calls instead of `.assign()`-ing a
+    fresh `Matrix6X::Zero(6, nv)` per joint. Franka throughput: 1881 ns
+    → 1748 ns (-7%). Hot-loop callers (derivative inner sweeps) become
+    allocation-free after the first call.
+  - `docs/BENCHMARKS.md` regenerated with the full table + Pinocchio
+    side-by-side ratios and explicit methodology section.
+  - Course chapter [16 — Benchmarking](course/16_benchmarking/README.md)
+    with 4 sub-chapters: what 'fast' means, using Google Benchmark,
+    profiling with `perf` + callgrind, and the optimisation loop
+    (with the Phase 9a allocation-fix as a worked example).
+
+### Changed
+
+- `compute_joint_jacobians` warm-call path is now allocation-free
+  (Phase 9a optimisation, see above). The cold-call path is unchanged.
+
 - **Phase 8 — Python bindings + examples.**
   - `src/bindings/main.cpp` expanded from the validation-only surface to
     the full public API: `SO3` / `SE3` (constructors, `exp`/`log`, `*`,

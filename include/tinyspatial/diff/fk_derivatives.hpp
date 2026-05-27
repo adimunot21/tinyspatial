@@ -53,7 +53,20 @@ inline void compute_joint_jacobians(const Model& model, Data& data,
 
   const int njoints = model.njoints();
   const int nv_total = model.nv();
-  joint_jacobians.assign(njoints, Matrix6X::Zero(6, nv_total));
+  // Reuse the caller's buffers when sized correctly; only `setZero` per call.
+  // This makes hot-loop usage (e.g. analytical-derivative inner sweeps)
+  // allocation-free after the first call.
+  if (static_cast<int>(joint_jacobians.size()) != njoints) {
+    joint_jacobians.assign(njoints, Matrix6X::Zero(6, nv_total));
+  } else {
+    for (auto& j_i : joint_jacobians) {
+      if (j_i.rows() != 6 || j_i.cols() != nv_total) {
+        j_i = Matrix6X::Zero(6, nv_total);
+      } else {
+        j_i.setZero();
+      }
+    }
+  }
 
   for (int i = 0; i < njoints; ++i) {
     Matrix6X& j_i = joint_jacobians[i];

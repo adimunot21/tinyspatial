@@ -154,6 +154,12 @@ nav:
       - Reading the nanobind glue: 14_python_bindings/02_reading_the_glue.md
       - Using tinyspatial from Python: 14_python_bindings/03_using_from_python.md
       - Pitfalls and good habits: 14_python_bindings/04_pitfalls.md
+  - "16 · Benchmarking":
+      - Overview: 16_benchmarking/README.md
+      - What 'fast' means: 16_benchmarking/01_what_is_fast.md
+      - Using Google Benchmark: 16_benchmarking/02_google_benchmark.md
+      - Profiling with perf / callgrind: 16_benchmarking/03_profiling.md
+      - The optimisation loop: 16_benchmarking/04_optimisation_loop.md
 
 # Don't fail the local build over not-yet-written cross-links between chapters.
 validation:

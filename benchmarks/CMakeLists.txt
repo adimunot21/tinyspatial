@@ -26,4 +26,7 @@ endfunction()
 
 if(TARGET tinyspatial_urdf)
   tinyspatial_add_benchmark(bench_rnea bench_rnea.cpp)
+  tinyspatial_add_benchmark(bench_kinematics bench_kinematics.cpp)
+  tinyspatial_add_benchmark(bench_ik bench_ik.cpp)
+  tinyspatial_add_benchmark(bench_rnea_derivatives bench_rnea_derivatives.cpp)
 endif()
