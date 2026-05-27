@@ -154,6 +154,11 @@ nav:
       - Reading the nanobind glue: 14_python_bindings/02_reading_the_glue.md
       - Using tinyspatial from Python: 14_python_bindings/03_using_from_python.md
       - Pitfalls and good habits: 14_python_bindings/04_pitfalls.md
+  - "15 · Validating against Pinocchio":
+      - Overview: 15_validation_vs_pinocchio/README.md
+      - The oracle approach: 15_validation_vs_pinocchio/01_the_oracle_approach.md
+      - Convention mismatches: 15_validation_vs_pinocchio/02_convention_mismatches.md
+      - Reading the parity table: 15_validation_vs_pinocchio/03_reading_the_parity_table.md
   - "16 · Benchmarking":
       - Overview: 16_benchmarking/README.md
       - What 'fast' means: 16_benchmarking/01_what_is_fast.md

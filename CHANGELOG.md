@@ -6,6 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **Course chapter 15 — Validating against Pinocchio.**
+  - Three sub-chapters: the oracle approach (why Pinocchio, what makes
+    a good oracle, the build-isolation trick that keeps Pinocchio out
+    of the standalone library); convention mismatches as bugs in
+    disguise (angular-first vs linear-first, universe-joint offset,
+    quaternion sign, Jacobian frame, gravity vector); reading the
+    parity table (what each cell means, FP noise floor vs algorithm
+    bug, anatomy of `tests/validation/test_kinematics.py`).
+  - Registered in `course/mkdocs.yml`.
+
 ### Changed
 
 - **Phase 9d — Force-Plücker apply without 6×6 construction (-21% CRBA).**
