@@ -248,8 +248,8 @@ clang-format --dry-run --Werror $(git ls-files '*.hpp' '*.cpp')
 # Build the Python wheel (after activating a Python 3.11+ venv)
 pip install -e python/
 
-# Build the course site locally
-mkdocs serve -f course/mkdocs.yml
+# Build the course site locally (mkdocs.yml is at the repo root)
+mkdocs serve
 ```
 
 If any of these commands break after a change you made, **fix it in the same PR**. Never push a red CI.
