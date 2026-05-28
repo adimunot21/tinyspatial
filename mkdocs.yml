@@ -1,5 +1,7 @@
 # mkdocs-material config for the tinyspatial course.
-# Build/serve from the repo root:  mkdocs serve -f course/mkdocs.yml
+# Build/serve from the repo root:  mkdocs serve
+# The docs workflow (.github/workflows/docs.yml) builds and deploys this to
+# GitHub Pages on every push to main.
 site_name: tinyspatial course
 site_description: Learn rigid-body kinematics and dynamics by reading a real C++ library.
 site_url: https://adimunot21.github.io/tinyspatial/
@@ -7,10 +9,9 @@ repo_url: https://github.com/adimunot21/tinyspatial
 repo_name: adimunot21/tinyspatial
 edit_uri: edit/main/course/
 
-# The course markdown lives alongside this config, so the docs root is here.
-# site_dir must live OUTSIDE docs_dir; we build into the (gitignored) build/.
-docs_dir: .
-site_dir: ../build/course_site
+# Course chapter markdown lives under ./course; site builds into ./build.
+docs_dir: course
+site_dir: build/course_site
 
 theme:
   name: material
@@ -166,8 +167,11 @@ nav:
       - Profiling with perf / callgrind: 16_benchmarking/03_profiling.md
       - The optimisation loop: 16_benchmarking/04_optimisation_loop.md
 
-# Don't fail the local build over not-yet-written cross-links between chapters.
+# Chapters cross-reference source files outside docs_dir (e.g.
+# `../../include/tinyspatial/...`). Those resolve correctly on GitHub when
+# rendered from main, but mkdocs treats them as broken internal links. Ignore.
 validation:
   links:
     absolute_links: ignore
     unrecognized_links: ignore
+    not_found: ignore

@@ -1,0 +1,63 @@
+# Builds the mkdocs-material course site and deploys to GitHub Pages.
+# Triggers on every push to main (so the live site tracks main automatically)
+# and can be re-run manually via the Actions UI.
+#
+# One-time setup (repo settings, not handled by this workflow):
+#   Settings → Pages → Source: "GitHub Actions"
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'course/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+# GitHub Pages needs id-token and pages write permissions for the deploy step.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one in-flight deploy per environment; queue rather than cancel so
+# in-progress deploys finish cleanly.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install mkdocs
+        run: |
+          pip install 'mkdocs' 'mkdocs-material' 'pymdown-extensions'
+
+      - name: Build site
+        run: mkdocs build --strict
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/course_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

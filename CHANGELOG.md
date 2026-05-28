@@ -6,6 +6,23 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **GitHub Pages deploy for the course site.**
+  - `.github/workflows/docs.yml` builds `mkdocs` and deploys to
+    `https://adimunot21.github.io/tinyspatial/` on every push to main
+    that touches `course/**` or `mkdocs.yml`.
+  - Uses `actions/upload-pages-artifact` + `actions/deploy-pages` (the
+    modern Actions-based Pages flow; no `gh-pages` branch).
+
+### Changed
+
+- Moved `course/mkdocs.yml` → repo-root `mkdocs.yml` with `docs_dir: course`.
+  Required because mkdocs 1.4+ rejects `docs_dir: .` (the docs dir must be a
+  child of the config file). Nav paths are unchanged (still relative to
+  `docs_dir`). Local invocation simplifies from `mkdocs serve -f course/mkdocs.yml`
+  to just `mkdocs serve`; CLAUDE.md updated.
+
 ## [0.1.0] — 2026-05-27
 
 Initial public release. Every algorithm planned in `PROJECT_PLAN.md` is

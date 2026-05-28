@@ -45,7 +45,9 @@ This project is both a **library** and a **course**.
   reviewers who want to read clean rigid-body-dynamics code.
 - **`/course`** — a from-scratch tutorial that takes someone who has *never
   programmed* from "what is a robot" all the way to differentiable IK. Uses
-  this codebase as the lab. Start at [`course/README.md`](course/README.md).
+  this codebase as the lab. Read it online at
+  **[adimunot21.github.io/tinyspatial](https://adimunot21.github.io/tinyspatial/)**
+  or start locally at [`course/README.md`](course/README.md).
 
 ## What's in the box
 
