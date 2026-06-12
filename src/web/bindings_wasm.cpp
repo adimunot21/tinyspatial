@@ -15,13 +15,17 @@
 #include <string>
 
 #include "tinyspatial/algo/forward_kinematics.hpp"
+#include "tinyspatial/algo/jacobian.hpp"
 #include "tinyspatial/model/model.hpp"
 #include "tinyspatial/urdf/urdf_loader.hpp"
 
 namespace {
 
 using tinyspatial::Data;
+using tinyspatial::JacobianFrame;
+using tinyspatial::Matrix6X;
 using tinyspatial::Model;
+using tinyspatial::Vector3;
 using tinyspatial::VectorX;
 
 /// A loaded robot, ready for repeated forward-kinematics queries from JS.
@@ -55,6 +59,49 @@ class Robot {
     return out;
   }
 
+  /// Position-only damped-least-squares IK: move joint `link_id`'s frame origin
+  /// to the world point `(tx, ty, tz)`, starting from `q_init`. Uses only the
+  /// linear rows of the local-world-aligned Jacobian, so it works for arms that
+  /// can't control orientation (e.g. a planar 2-link arm). Returns
+  /// `{ q: number[], converged: bool, iterations: int }`.
+  [[nodiscard]] emscripten::val solveIkPosition(int link_id, double tx, double ty, double tz,
+                                                const emscripten::val& q_init_js) {
+    const int n = q_init_js["length"].as<int>();
+    VectorX q(n);
+    for (int i = 0; i < n; ++i) {
+      q(i) = q_init_js[i].as<double>();
+    }
+    const Vector3 target(tx, ty, tz);
+    Matrix6X jac(6, model_.nv());
+    constexpr double kLambdaSq = 1e-2 * 1e-2;
+    constexpr double kTol = 1e-6;
+    bool converged = false;
+    int iter = 0;
+    for (; iter < 200; ++iter) {
+      tinyspatial::forward_kinematics(model_, data_, q);
+      const Vector3 err = target - data_.pose_in_world[link_id].translation();
+      if (err.norm() <= kTol) {
+        converged = true;
+        break;
+      }
+      tinyspatial::compute_jacobian(model_, data_, link_id, jac, JacobianFrame::kLocalWorldAligned);
+      // Linear rows (angular-first: 3..5) are ∂(world position)/∂q.
+      const Eigen::Matrix<double, 3, Eigen::Dynamic> jp = jac.bottomRows(3);
+      const Eigen::Matrix3d jjt = jp * jp.transpose() + kLambdaSq * Eigen::Matrix3d::Identity();
+      q.noalias() += jp.transpose() * jjt.ldlt().solve(err);
+    }
+
+    emscripten::val result = emscripten::val::object();
+    emscripten::val q_arr = emscripten::val::array();
+    for (int i = 0; i < n; ++i) {
+      q_arr.call<void>("push", q(i));
+    }
+    result.set("q", q_arr);
+    result.set("converged", converged);
+    result.set("iterations", iter);
+    return result;
+  }
+
  private:
   Model model_;
   Data data_;
@@ -68,5 +115,6 @@ EMSCRIPTEN_BINDINGS(tinyspatial) {
       .function("nq", &Robot::nq)
       .function("nv", &Robot::nv)
       .function("njoints", &Robot::njoints)
-      .function("jointPositions", &Robot::jointPositions);
+      .function("jointPositions", &Robot::jointPositions)
+      .function("solveIkPosition", &Robot::solveIkPosition);
 }

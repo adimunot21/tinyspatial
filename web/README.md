@@ -29,10 +29,15 @@ python3 -m http.server -d web/demo 8000
 # open http://localhost:8000
 ```
 
-[`web/demo/`](demo/) is a dependency-free page: `index.html` loads the module,
-`app.js` builds a 2-link arm from a URDF string and redraws it from the joint
-positions `forward_kinematics` returns as you move the sliders. No JavaScript
-reimplementation of the kinematics — it's the compiled C++.
+[`web/demo/`](demo/) holds two dependency-free pages, both loading the same
+module:
+
+- **`index.html`** (`app.js`) — forward kinematics: move two sliders, the arm
+  redraws from the joint positions `forward_kinematics` returns.
+- **`ik.html`** (`ik.js`) — inverse kinematics: drag a target and the C++
+  damped-least-squares solver puts the tip on your cursor.
+
+No JavaScript reimplementation of the kinematics — it's the compiled C++.
 
 ## The binding surface
 
@@ -45,8 +50,10 @@ const robot = new Module.Robot(urdfXmlString); // browser has no filesystem
 robot.nq();                 // configuration dimension
 robot.njoints();            // number of joint frames
 robot.jointPositions(q);    // q: number[]  ->  flat [x0,y0,z0, x1,y1,z1, …]
+robot.solveIkPosition(linkId, tx, ty, tz, qInit);
+//   position-only DLS IK  ->  { q: number[], converged: bool, iterations: int }
 ```
 
-Extending it (Jacobians, IK, RNEA) is a matter of adding `.function(...)` lines
-to `EMSCRIPTEN_BINDINGS` in `src/web/bindings_wasm.cpp` — the algorithms are
-already there.
+Extending it further (full-pose IK, RNEA, the differentiable `Jet` path) is a
+matter of adding `.function(...)` lines to `EMSCRIPTEN_BINDINGS` in
+`src/web/bindings_wasm.cpp` — the algorithms are already there.

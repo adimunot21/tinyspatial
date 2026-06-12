@@ -29,6 +29,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   explains WASM/embind and the build, and [`web/README.md`](web/README.md) covers
   building + serving it. The demo's robot definition and FK output were verified
   against the native library.
+- **Drag-to-reach IK widget.** `Robot.solveIkPosition(linkId, tx, ty, tz, qInit)`
+  added to the WASM binding — a position-only damped-least-squares solve (the
+  Jacobian's linear rows) returning `{ q, converged, iterations }`.
+  [`web/demo/ik.html`](web/demo/ik.html) (`ik.js`) lets you drag a target and the
+  compiled C++ solver puts the arm's tip on your cursor, warm-started each move.
+  The solve was verified against the native library (converges in ~6 iterations,
+  reaches the target exactly); the binding compile is re-checked by the `wasm`
+  CI workflow.
 
 - **Differentiable-first groundwork (Phase 2, P2.0) — the `Scalar`-generic seam
   + a forward-mode autodiff scalar.** The goal: run FK / Jacobian / RNEA on a

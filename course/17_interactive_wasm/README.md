@@ -69,10 +69,14 @@ const robot  = new Module.Robot(urdfString);   // construct from URDF text
 const flat   = robot.jointPositions([0.5, 0.3]); // [x0,y0,z0, x1,y1,z1, …]
 ```
 
-The [demo page](../../web/demo/) wires that to two range sliders and
-redraws an SVG polyline from the returned positions every time you move
-one. Open it and you are literally watching Featherstone's frame
-propagation run in your browser.
+The [demo pages](../../web/demo/) wire that up two ways. `index.html`
+adds two range sliders and redraws an SVG polyline from the returned
+positions every time you move one — you are literally watching
+Featherstone's frame propagation run in your browser. `ik.html` goes
+further: drag a target and `Robot.solveIkPosition` (the C++
+damped-least-squares solver, position-only so a 2-link arm can track a
+2-D point) runs a handful of iterations per mouse-move and puts the tip
+on your cursor.
 
 ## Build and run it yourself
 
