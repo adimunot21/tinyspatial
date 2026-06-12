@@ -34,8 +34,16 @@ Single-call throughput on a 7-DoF Franka FR3 (Intel i7-9750H, GCC 13.3,
 | **FK**        |   **1.70 M / s** |            ~3.6 M / s |  2.1×  |
 | **Jacobian**  |   **1.39 M / s** |            ~2.0 M / s |  1.4×  |
 
-Full benchmark table (all 4 fixture robots × 9 algorithms, plus
-Pinocchio side-by-side) at [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
+The **tinyspatial** column is measured (Google Benchmark, median of
+~488 K iterations). The **Pinocchio** column is an *estimate* — a measured
+C++ head-to-head is tracked as future work; the only number measured against
+Pinocchio today is the Python-side comparison in
+[`docs/BENCHMARKS.md`](docs/BENCHMARKS.md). In honest terms: tinyspatial sits at
+**~1.6× of Pinocchio's C++ RNEA** on a 7-DoF arm — short of the project's
+original `≥ 6 M/s` aspiration (PROJECT_PLAN §2), which the fixed-size /
+compile-time work on the roadmap is the path to closing. The gap, the
+optimisation history, and the remaining levers are all documented in
+[`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
 
 ## Two things in one repo
 

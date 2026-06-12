@@ -8,6 +8,40 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **`validation.yml` workflow — Pinocchio parity in CI (CLAUDE.md §10/§11).**
+  - Runs the `tests/validation/test_kinematics.py` cross-check on PRs that touch
+    `include/`, `src/`, or `tests/validation/`, plus a nightly schedule and
+    manual dispatch. Uses a pip venv with the pinned `pin==3.9.0` cmeel wheels
+    (no conda in CI), builds the nanobind binding, runs
+    `ctest --preset=validation -L pinocchio_parity`, and upserts the regenerated
+    parity table as a sticky PR comment. Closes the gap where the parity table
+    was hand-committed and never CI-verified.
+- **`docs/ARCHITECTURE.md`** — structural overview for reviewers (header-mostly
+  rationale, Model/Data split, convention table, the dependency boundary,
+  build-target map). Referenced by the README but previously missing.
+- **`docs/DEVELOPMENT.md`** — contributor guide (build/test/validate commands,
+  style, the dual-track rule, the add-an-algorithm flow, git/PR conventions).
+  Referenced by the README but previously missing.
+
+### Changed
+
+- **`ci.yml` expanded from the Phase-0 single job to the CLAUDE.md §10 matrix:**
+  `ubuntu-22.04/gcc-12` and `ubuntu-24.04/clang-17`, each in Debug (ASan+UBSan)
+  and Release. Added a `lint` job: `clang-format` (gating) + `clang-tidy`
+  (advisory, per CLAUDE.md §7). Release configs skip benchmarks to protect the
+  time budget; the slow Pinocchio cross-check stays in `validation.yml`.
+- **Honest performance accounting.** The README and `PROJECT_PLAN.md` §2 now
+  state plainly that the `≥ 6 M RNEA/s, within 1.4×` figure is an *aspiration*,
+  not a delivered number — current measured standing is **~390 K/s, ~1.6×** of
+  Pinocchio C++ — and that the Pinocchio comparison column is an estimate
+  pending a measured C++ head-to-head. No claim now reads as achieved when it
+  is not.
+- **Documented the IK `std::expected` exception** in `CLAUDE.md` §7 and
+  `docs/ARCHITECTURE.md`: iterative best-effort solvers return a result struct
+  with a `converged` flag by design.
+
+### Added
+
 - **GitHub Pages deploy for the course site.**
   - `.github/workflows/docs.yml` builds `mkdocs` and deploys to
     `https://adimunot21.github.io/tinyspatial/` on every push to main

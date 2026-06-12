@@ -175,7 +175,7 @@ Chapters 00–02 are **mostly curated links + 1–2 pages of original framing**.
   - Pass matrices by `const Eigen::Ref<const MatT>&` for inputs, by `Eigen::Ref<MatT>` for outputs. Document each.
   - Prefer fixed-size types (`Matrix3d`, `Vector6d`) where dimensions are known at compile time. Dynamic only at the kinematic-tree boundary.
   - Watch alignment: any struct holding fixed-size Eigen types needs `EIGEN_MAKE_ALIGNED_OPERATOR_NEW` *only if* targeting pre-C++17 compilers — we don't, but be aware.
-- **Error handling**: return `std::expected<T, Error>` (C++23 `<expected>` via header polyfill if needed) at the public API, throw only on programmer errors (precondition violations).
+- **Error handling**: return `std::expected<T, Error>` (C++23 `<expected>` via header polyfill if needed) at the public API, throw only on programmer errors (precondition violations). **Documented exception**: iterative best-effort solvers (the IK family in `ik/`) return a result struct with a `converged` flag rather than `std::expected`, because "ran N iterations, here is the best answer and whether it met tolerance" is the honest shape of the operation. See `docs/ARCHITECTURE.md`.
 - **No exceptions across the C/Python boundary.** Convert to error codes.
 - **Doxygen**: `///` for public API, with `\param`, `\returns`, `\pre`, `\post`. No Doxygen on private/internal stuff.
 - **`clang-format`** is enforced in CI. `.clang-format` is committed; don't fight it.
