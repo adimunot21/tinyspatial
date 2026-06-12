@@ -1,0 +1,109 @@
+# Pinocchio parity — the credibility centrepiece (CLAUDE.md §10, §11).
+#
+# Runs the Pinocchio 3.9 cross-check that ci.yml deliberately leaves out (it
+# needs a heavy Python/Pinocchio toolchain that would blow the <90s CI budget).
+# Kept in its own workflow so the fast CI stays fast.
+#
+# Triggers:
+#   - PRs that touch the algorithms or the validation harness itself.
+#   - A nightly schedule (catches drift from dependency / compiler updates).
+#   - Manual dispatch.
+#
+# The harness (tests/validation/test_kinematics.py) regenerates
+# docs/PINOCCHIO_PARITY.md and exits non-zero if any algorithm on any fixture
+# robot exceeds the 1e-10 tolerance. On PRs we surface the regenerated table as
+# a sticky comment so reviewers see the parity numbers without leaving GitHub.
+name: validation
+
+on:
+  pull_request:
+    paths:
+      - 'include/tinyspatial/**'
+      - 'src/**'
+      - 'tests/validation/**'
+      - '.github/workflows/validation.yml'
+  schedule:
+    # 04:17 UTC nightly — off-peak, avoids the top-of-hour runner crunch.
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+# Needed only to upsert the parity-table comment on PRs.
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pinocchio-parity:
+    name: Pinocchio 3.9 cross-check
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential g++-12 cmake
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # cmeel-packaged pinocchio (pip `pin`) ships wheels for 3.11.
+          python-version: '3.11'
+
+      - name: Create venv with Pinocchio 3.9 oracle
+        run: |
+          # The .venv location is what CMakeLists.txt looks for when wiring the
+          # ctest entry, and what test_kinematics.py imports against.
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r tests/validation/requirements.txt
+
+      - name: Configure + build the validation binding
+        env:
+          CC: gcc-12
+          CXX: g++-12
+        run: |
+          # Activate the venv so find_package(Python) resolves to it and
+          # nanobind builds _tinyspatial against the same interpreter that
+          # has pinocchio installed.
+          . .venv/bin/activate
+          cmake --preset=validation
+          cmake --build build/validation -j
+
+      - name: Run Pinocchio parity suite
+        run: ctest --preset=validation -L pinocchio_parity --output-on-failure
+
+      - name: Show regenerated parity table
+        if: always()
+        run: cat docs/PINOCCHIO_PARITY.md
+
+      - name: Comment parity table on the PR
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const table = fs.readFileSync('docs/PINOCCHIO_PARITY.md', 'utf8');
+            const marker = '<!-- pinocchio-parity -->';
+            const status = '${{ job.status }}';
+            const header = status === 'success'
+              ? '✅ **Pinocchio parity green** — all algorithms within `1e-10`.'
+              : '❌ **Pinocchio parity FAILED** — an algorithm exceeded `1e-10`. See the run log.';
+            const body = `${marker}\n${header}\n\n<details><summary>Parity table</summary>\n\n${table}\n</details>`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.data.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

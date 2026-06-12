@@ -1,6 +1,17 @@
-# Phase 0 CI: a single minimal config (Ubuntu 22.04 / GCC 12), per PROJECT_PLAN.
-# The full OS x compiler x sanitizer matrix from CLAUDE.md §10 is added in a
-# later phase, once there's enough code to make it meaningful.
+# Fast CI (CLAUDE.md §10): the full OS × compiler × build-type matrix, kept
+# lean enough to protect the "<90s" brag. The slow Pinocchio cross-check lives
+# in validation.yml so it never enters this budget.
+#
+# Matrix:
+#   ubuntu-22.04 / gcc-12   / Debug   (ASan+UBSan via the debug preset)
+#   ubuntu-22.04 / gcc-12   / Release
+#   ubuntu-24.04 / clang-17 / Debug   (ASan+UBSan via the debug preset)
+#   ubuntu-24.04 / clang-17 / Release
+#
+# Release configs override the benchmark flag off — benchmarks are perf
+# artifacts, not correctness gates, and building Google Benchmark would inflate
+# the budget. The lint job runs clang-format (gating) and clang-tidy (advisory,
+# per CLAUDE.md §7).
 name: ci
 
 on:
@@ -8,18 +19,45 @@ on:
     branches: [main]
   pull_request:
 
-# Cancel superseded runs on the same ref to keep the queue (and the <90s brag) lean.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build-test:
-    name: ubuntu-22.04 / gcc-12 / Debug
-    runs-on: ubuntu-22.04
+    name: ${{ matrix.os }} / ${{ matrix.compiler }} / ${{ matrix.preset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            compiler: gcc-12
+            cc: gcc-12
+            cxx: g++-12
+            apt: g++-12
+            preset: debug
+          - os: ubuntu-22.04
+            compiler: gcc-12
+            cc: gcc-12
+            cxx: g++-12
+            apt: g++-12
+            preset: release
+          - os: ubuntu-24.04
+            compiler: clang-17
+            cc: clang-17
+            cxx: clang++-17
+            apt: clang-17
+            preset: debug
+          - os: ubuntu-24.04
+            compiler: clang-17
+            cc: clang-17
+            cxx: clang++-17
+            apt: clang-17
+            preset: release
     env:
-      CC: gcc-12
-      CXX: g++-12
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
     steps:
       - name: Checkout (with submodules)
         uses: actions/checkout@v5
@@ -29,13 +67,48 @@ jobs:
       - name: Install toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends build-essential g++-12 cmake
+          sudo apt-get install -y --no-install-recommends build-essential cmake ${{ matrix.apt }}
 
       - name: Configure
-        run: cmake --preset=debug
+        run: |
+          if [ "${{ matrix.preset }}" = "release" ]; then
+            # Benchmarks are not a correctness gate; keep the Release build lean.
+            cmake --preset=release -DTINYSPATIAL_BUILD_BENCHMARKS=OFF
+          else
+            cmake --preset=${{ matrix.preset }}
+          fi
 
       - name: Build
-        run: cmake --build build/debug -j
+        run: cmake --build build/${{ matrix.preset }} -j
 
       - name: Test
-        run: ctest --preset=debug --output-on-failure
+        run: ctest --preset=${{ matrix.preset }} --output-on-failure
+
+  lint:
+    name: clang-format + clang-tidy
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang-format-17 clang-tidy-17 cmake build-essential
+
+      - name: clang-format (gating)
+        run: |
+          # Exact command from CLAUDE.md §9.
+          clang-format-17 --dry-run --Werror $(git ls-files '*.hpp' '*.cpp')
+
+      - name: Generate compile_commands.json for clang-tidy
+        run: cmake --preset=debug
+
+      - name: clang-tidy (advisory)
+        # clang-tidy is advisory per CLAUDE.md §7 — surface warnings without
+        # gating the merge. Runs over our own TUs (not third_party).
+        continue-on-error: true
+        run: |
+          clang-tidy-17 -p build/debug $(git ls-files 'src/*.cpp' 'tests/*.cpp')
