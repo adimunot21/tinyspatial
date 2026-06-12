@@ -25,6 +25,7 @@ option(TINYSPATIAL_BUILD_EXAMPLES "Build the standalone C++ examples" ${TINYSPAT
 option(TINYSPATIAL_BUILD_BENCHMARKS "Build Google Benchmark perf tests" OFF)
 option(TINYSPATIAL_BUILD_VALIDATION "Build the Pinocchio parity validation suite" OFF)
 option(TINYSPATIAL_BUILD_PYTHON "Build the nanobind Python bindings" OFF)
+option(TINYSPATIAL_BUILD_WASM "Build the WebAssembly module (Emscripten only)" OFF)
 
 # -- Language standard (CLAUDE.md §7: C++20, no compiler extensions) --
 set(CMAKE_CXX_STANDARD 20)
@@ -88,6 +89,36 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tinyxml2/tinyxml2.cpp")
     PRIVATE tinyxml2_vendor tinyspatial_warnings)
   set_target_properties(tinyspatial_urdf PROPERTIES POSITION_INDEPENDENT_CODE ON)
   add_library(tinyspatial::urdf ALIAS tinyspatial_urdf)
+endif()
+
+# ---------------------------------------------------------------------------
+# WebAssembly module (Emscripten only) — the browser edge of the library, used
+# by the interactive course. Builds `tinyspatial.js` + `tinyspatial.wasm` from
+# the embind glue in src/web/. Activated by `cmake --preset=wasm`, which sets
+# the Emscripten toolchain and TINYSPATIAL_BUILD_WASM=ON. Reuses the header-only
+# library plus the (emcc-compiled) URDF loader; the small dependency surface is
+# what keeps the .wasm bundle small.
+# ---------------------------------------------------------------------------
+if(EMSCRIPTEN AND TINYSPATIAL_BUILD_WASM)
+  if(NOT TARGET tinyspatial_urdf)
+    message(FATAL_ERROR
+      "WASM build needs the URDF loader. Run: git submodule update --init --recursive")
+  endif()
+  add_executable(tinyspatial_wasm src/web/bindings_wasm.cpp)
+  target_link_libraries(tinyspatial_wasm PRIVATE tinyspatial tinyspatial_urdf)
+  # JS-based exceptions so embind can surface a thrown UrdfParseError as a JS
+  # error rather than aborting. -O3 for a tight bundle.
+  target_compile_options(tinyspatial_wasm PRIVATE -fexceptions -O3)
+  target_link_options(tinyspatial_wasm PRIVATE
+    -fexceptions
+    -O3
+    "-lembind"
+    "-sMODULARIZE=1"
+    "-sEXPORT_NAME=createTinyspatial"
+    "-sALLOW_MEMORY_GROWTH=1"
+    "-sENVIRONMENT=web")
+  # Emit tinyspatial.js / tinyspatial.wasm.
+  set_target_properties(tinyspatial_wasm PROPERTIES OUTPUT_NAME tinyspatial SUFFIX ".js")
 endif()
 
 if(TINYSPATIAL_BUILD_TESTS)

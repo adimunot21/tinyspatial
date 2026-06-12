@@ -8,6 +8,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **WebAssembly build foundation (Phase 3, the interactive course).** The
+  library now compiles to WASM so the course can run real `tinyspatial` in the
+  browser. `src/web/bindings_wasm.cpp` is an embind glue exposing a `Robot`
+  class (construct from a URDF *string* — the browser has no filesystem — then
+  `jointPositions(q)` returns every joint frame's world origin). A
+  `cmake --preset=wasm` (Emscripten toolchain) builds `tinyspatial.js` +
+  `tinyspatial.wasm`; the new `.github/workflows/wasm.yml` installs emsdk and
+  compiles it (the verification gate, since the WASM toolchain isn't part of the
+  native build). The header-mostly, no-Boost/no-ROS dependency discipline is
+  what keeps the bundle small. The native build is unchanged (the target is
+  guarded by `if(EMSCRIPTEN AND TINYSPATIAL_BUILD_WASM)`).
+
 - **Differentiable-first groundwork (Phase 2, P2.0) — the `Scalar`-generic seam
   + a forward-mode autodiff scalar.** The goal: run FK / Jacobian / RNEA on a
   header-only dual type and get exact gradients, no CppAD / Python / JAX.

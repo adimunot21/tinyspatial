@@ -43,12 +43,27 @@
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "TINYSPATIAL_BUILD_VALIDATION": "ON"
       }
+    },
+    {
+      "name": "wasm",
+      "displayName": "WebAssembly (Emscripten)",
+      "description": "Builds tinyspatial.js + tinyspatial.wasm via embind. Requires EMSDK in the environment (source emsdk_env.sh first).",
+      "inherits": "base",
+      "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "TINYSPATIAL_BUILD_WASM": "ON",
+        "TINYSPATIAL_BUILD_TESTS": "OFF",
+        "TINYSPATIAL_BUILD_EXAMPLES": "OFF",
+        "CMAKE_CXX_FLAGS": "-fexceptions"
+      }
     }
   ],
   "buildPresets": [
     { "name": "debug", "configurePreset": "debug" },
     { "name": "release", "configurePreset": "release" },
-    { "name": "validation", "configurePreset": "validation" }
+    { "name": "validation", "configurePreset": "validation" },
+    { "name": "wasm", "configurePreset": "wasm" }
   ],
   "testPresets": [
     {
