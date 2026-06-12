@@ -68,6 +68,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     AD `∂τ/∂a` against CRBA's `M(q)` to ~1e-9 on Franka and UR5e — three
     independently-derived paths in agreement. 156/156 tests green; double path
     unchanged.
+  - **P2.5 — CRBA and ABA are differentiable; the algorithm suite is complete.**
+    `spatial/plucker.hpp`, `algo/crba.hpp`, and `algo/aba.hpp` are templated on
+    the scalar. New `tests/unit/diff/test_dynamics_ad.cpp`: CRBA on `Jet`
+    reproduces the `double` mass matrix, and ABA — seeded on `τ` — yields
+    `∂q̈/∂τ`, which is checked against `M(q)⁻¹` (CRBA inverse) to 1e-8. This
+    closes the dynamics loop through autodiff: RNEA gives `M = ∂τ/∂a`, ABA gives
+    `M⁻¹ = ∂q̈/∂τ`. Every kinematics/dynamics algorithm (FK, Jacobian, RNEA,
+    CRBA, ABA) now runs differentiably in pure C++ with no external autodiff
+    dependency. 158/158 tests green; double path unchanged.
 
 ### Added
 

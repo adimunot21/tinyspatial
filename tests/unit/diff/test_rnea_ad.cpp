@@ -14,13 +14,13 @@
 #include <random>
 #include <string>
 
-#include <gtest/gtest.h>
-
 #include "tinyspatial/algo/crba.hpp"
 #include "tinyspatial/algo/rnea.hpp"
 #include "tinyspatial/core/jet.hpp"
 #include "tinyspatial/diff/rnea_derivatives.hpp"
 #include "tinyspatial/urdf/urdf_loader.hpp"
+
+#include <gtest/gtest.h>
 
 namespace tinyspatial {
 namespace {
@@ -94,8 +94,12 @@ void check_rnea_ad(const std::string& robot) {
   EXPECT_LE((ad_da - mass_matrix).cwiseAbs().maxCoeff(), 1e-9) << robot << " dtau/da vs CRBA M(q)";
 }
 
-TEST(RneaAd, MatchesAnalyticalAndCrbaFranka) { check_rnea_ad<7>("franka_fr3.urdf"); }
-TEST(RneaAd, MatchesAnalyticalAndCrbaUr5e) { check_rnea_ad<6>("ur5e.urdf"); }
+TEST(RneaAd, MatchesAnalyticalAndCrbaFranka) {
+  check_rnea_ad<7>("franka_fr3.urdf");
+}
+TEST(RneaAd, MatchesAnalyticalAndCrbaUr5e) {
+  check_rnea_ad<6>("ur5e.urdf");
+}
 
 }  // namespace
 }  // namespace tinyspatial
