@@ -167,6 +167,8 @@ nav:
       - Using Google Benchmark: 16_benchmarking/02_google_benchmark.md
       - Profiling with perf / callgrind: 16_benchmarking/03_profiling.md
       - The optimisation loop: 16_benchmarking/04_optimisation_loop.md
+  - "17 · Interactive (WASM)":
+      - Overview: 17_interactive_wasm/README.md
 
 # Chapters cross-reference source files outside docs_dir (e.g.
 # `../../include/tinyspatial/...`). Those resolve correctly on GitHub when

@@ -18,7 +18,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   compiles it (the verification gate, since the WASM toolchain isn't part of the
   native build). The header-mostly, no-Boost/no-ROS dependency discipline is
   what keeps the bundle small. The native build is unchanged (the target is
-  guarded by `if(EMSCRIPTEN AND TINYSPATIAL_BUILD_WASM)`).
+  guarded by `if(EMSCRIPTEN AND TINYSPATIAL_BUILD_WASM)`). *Verified green in
+  CI* — the `wasm` workflow builds the module on GitHub's runners.
+- **Interactive browser demo + course chapter 17.** [`web/demo/`](web/demo/) is a
+  dependency-free page (`index.html` + `app.js`) that loads the WASM module,
+  builds a 2-link arm from a URDF string, and redraws it live from the joint
+  positions `forward_kinematics` returns as you drag two sliders — no JavaScript
+  reimplementation of the math, it's the compiled C++. Course chapter
+  [17 "Interactive: the library in your browser"](course/17_interactive_wasm/README.md)
+  explains WASM/embind and the build, and [`web/README.md`](web/README.md) covers
+  building + serving it. The demo's robot definition and FK output were verified
+  against the native library.
 
 - **Differentiable-first groundwork (Phase 2, P2.0) — the `Scalar`-generic seam
   + a forward-mode autodiff scalar.** The goal: run FK / Jacobian / RNEA on a

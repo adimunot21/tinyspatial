@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tinyspatial — live forward kinematics in the browser</title>
+    <style>
+      :root {
+        --ink: #1b1f24;
+        --accent: #2d6cdf;
+        --muted: #6b7280;
+      }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--ink);
+        max-width: 720px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.5;
+      }
+      h1 { font-size: 1.4rem; }
+      .stage {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      svg {
+        background: #f7f8fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+      }
+      .arm-link {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .joint-dot { fill: var(--ink); }
+      #controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        min-width: 220px;
+      }
+      #controls label {
+        display: flex;
+        flex-direction: column;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      #readout {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        margin-top: 1rem;
+        color: var(--accent);
+      }
+      code { background: #f0f1f3; padding: 0.1rem 0.3rem; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>tinyspatial, live in your browser</h1>
+    <p>
+      This page runs the <strong>real C++ library</strong>, compiled to
+      WebAssembly. Every joint position below comes from the same
+      <code>forward_kinematics</code> that the unit tests and Pinocchio parity
+      suite exercise — there is no JavaScript reimplementation of the math. Drag
+      the sliders to move the joints.
+    </p>
+
+    <div class="stage">
+      <svg id="arm" width="440" height="440" viewBox="0 0 440 440"></svg>
+      <div id="controls"></div>
+    </div>
+    <div id="readout">loading WebAssembly module…</div>
+
+    <p style="margin-top: 2rem; color: var(--muted); font-size: 0.85rem">
+      Build the module first (<code>cmake --preset=wasm &amp;&amp; cmake --build
+      build/wasm</code>) and copy <code>tinyspatial.js</code> /
+      <code>tinyspatial.wasm</code> next to this file — see
+      <code>web/README.md</code>.
+    </p>
+
+    <script src="tinyspatial.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
