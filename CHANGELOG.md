@@ -27,6 +27,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     `normalize()` + `toRotationMatrix()` with `dR/dθ` checked against the
     analytic rotation derivative to 1e-10. Passing this gate means templating the
     algorithms on the scalar is mechanical.
+  - **P2.1 — the Lie-group core is now Scalar-generic.** `liegroup/so3.hpp` and
+    `liegroup/se3.hpp` are templated as `SO3T<S>` / `SE3T<S>` with
+    `SO3 = SO3T<double>` / `SE3 = SE3T<double>`, so the whole library and its
+    152 tests still build on `double` unchanged. These two files hold every
+    transcendental (`sqrt`/`asin`/`sin`/`cos`/min-clamp + the quaternion sign
+    branch); they now call math through `using std::fn; fn(x)` so ADL resolves
+    the `Jet` overload, and every branch predicate compares the scalar value
+    only. `skew`/`unskew` deduce their scalar from the argument. (Also factored
+    the duplicated SO(3) Jacobian coefficient branches into `ab_coeffs`/`c_coeff`
+    helpers — no behavioural change.)
+  - `tests/unit/liegroup/test_liegroup_ad.cpp` — instantiates the groups on
+    `Jet` and validates the autodiff against analytic truths: `log(exp(ω))` and
+    `log(exp(ξ))` Jacobians equal the identity (I₃, I₆), and
+    `d(R·p)/dω|₀ = -[p]_×` exercises the small-angle branch.
 
 ### Added
 
