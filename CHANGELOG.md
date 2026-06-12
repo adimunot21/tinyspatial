@@ -77,6 +77,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     `M⁻¹ = ∂q̈/∂τ`. Every kinematics/dynamics algorithm (FK, Jacobian, RNEA,
     CRBA, ABA) now runs differentiably in pure C++ with no external autodiff
     dependency. 158/158 tests green; double path unchanged.
+  - **Differentiable-first, surfaced (dual-track close-out).** A runnable example
+    [`src/examples/differentiable_dynamics.cpp`](src/examples/differentiable_dynamics.cpp)
+    shows the full pattern — `model_cast<Jet>`, seed `q`, read `∂(ee)/∂q` and
+    `∂g/∂q` straight out of FK and RNEA. Course chapter
+    [13.5 "Differentiable everything: the Jet approach"](course/13_differentiable_ik/05_differentiable_dynamics.md)
+    gives the capability a home (CLAUDE.md §3), and the README gains a
+    "Differentiable in pure C++" section.
 
 ### Added
 

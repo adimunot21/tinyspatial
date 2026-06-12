@@ -10,3 +10,4 @@ function(tinyspatial_add_example name)
 endfunction()
 
 tinyspatial_add_example(se3_basics se3_basics.cpp)
+tinyspatial_add_example(differentiable_dynamics differentiable_dynamics.cpp)

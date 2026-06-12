@@ -140,6 +140,7 @@ nav:
       - The implicit function theorem: 13_differentiable_ik/02_implicit_function_theorem.md
       - The IK case: 13_differentiable_ik/03_the_ik_case.md
       - In code: 13_differentiable_ik/04_in_code.md
+      - "Differentiable everything: the Jet approach": 13_differentiable_ik/05_differentiable_dynamics.md
       - Exercises: 13_differentiable_ik/exercises.md
   - "11 · ABA and CRBA":
       - Overview: 11_ABA_and_CRBA/README.md

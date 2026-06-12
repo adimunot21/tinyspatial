@@ -11,12 +11,12 @@
 #include <random>
 #include <string>
 
-#include <gtest/gtest.h>
-
 #include "tinyspatial/algo/aba.hpp"
 #include "tinyspatial/algo/crba.hpp"
 #include "tinyspatial/core/jet.hpp"
 #include "tinyspatial/urdf/urdf_loader.hpp"
+
+#include <gtest/gtest.h>
 
 namespace tinyspatial {
 namespace {
@@ -103,8 +103,12 @@ void check_dynamics_ad(const std::string& robot) {
   }
 }
 
-TEST(DynamicsAd, CrbaAndAbaFranka) { check_dynamics_ad<7>("franka_fr3.urdf"); }
-TEST(DynamicsAd, CrbaAndAbaUr5e) { check_dynamics_ad<6>("ur5e.urdf"); }
+TEST(DynamicsAd, CrbaAndAbaFranka) {
+  check_dynamics_ad<7>("franka_fr3.urdf");
+}
+TEST(DynamicsAd, CrbaAndAbaUr5e) {
+  check_dynamics_ad<6>("ur5e.urdf");
+}
 
 }  // namespace
 }  // namespace tinyspatial

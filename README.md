@@ -76,6 +76,34 @@ This project is both a **library** and a **course**.
 | `tinyspatial/ik/nullspace`             | Task-priority IK with secondary posture objective                  |
 | `tinyspatial/ik/differentiable`        | Analytical `∂q*/∂T*` via the implicit function theorem             |
 
+## Differentiable in pure C++
+
+Every kinematics and dynamics algorithm — FK, Jacobian, **RNEA, CRBA, ABA** — is
+templated on its scalar type, so running it on a header-only forward-mode
+autodiff scalar (`Jet<N>`) yields **exact derivatives with no finite
+differencing and no external autodiff library** (no CppAD, no JAX, no PyTorch).
+Lift a model, seed the configuration, read the partials out of the result:
+
+```cpp
+using J = tinyspatial::Jet<7>;                         // 7-DoF arm
+const auto model = tinyspatial::model_cast<J>(franka); // double model -> autodiff
+tinyspatial::DataT<J> data(model);
+
+VectorXj q(7);
+for (int k = 0; k < 7; ++k) q(k) = J(q0(k), k);        // seed q as the variables
+
+tinyspatial::rnea(model, data, q, v, a, tau);          // the SAME rnea
+// tau(r).a    = torque ;  tau(r).v[k] = ∂τ_r/∂q_k     — the exact derivative
+```
+
+The autodiff path is cross-checked against the library's hand-written analytical
+derivatives to machine precision: AD ∂FK/∂q matches `fk_derivatives` to `1e-10`;
+AD ∂τ/∂q matches the Carpentier–Mansard recursion, and AD ∂τ/∂a independently
+equals CRBA's `M(q)`; AD ∂q̈/∂τ equals `M(q)⁻¹`. Two independently-derived
+derivative paths agreeing — see the runnable
+[`src/examples/differentiable_dynamics.cpp`](src/examples/differentiable_dynamics.cpp)
+and [course chapter 13.5](course/13_differentiable_ik/05_differentiable_dynamics.md).
+
 ## Quick start
 
 ```bash
@@ -85,7 +113,7 @@ git submodule update --init --recursive   # fetch Eigen, GoogleTest, etc.
 
 cmake --preset=debug                       # configure -> build/debug
 cmake --build build/debug -j
-ctest --preset=debug --output-on-failure   # run all 143 unit tests
+ctest --preset=debug --output-on-failure   # run all 158 unit tests
 ```
 
 A fresh Ubuntu box needs only `sudo apt install build-essential cmake git`.

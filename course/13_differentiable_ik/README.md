@@ -45,6 +45,11 @@ call, one 6 × 6 linear solve, done.
    `∂q*/∂T* = J⁺` from the IK fixed-point condition.
 4. [In code](04_in_code.md) — `differentiable.hpp` walked through, plus
    a worked numpy example via the Python binding.
+5. [Differentiable *everything*: the Jet approach](05_differentiable_dynamics.md)
+   — the general route. The whole library is templated on its scalar, so
+   running any algorithm on a forward-mode autodiff `Jet` gives exact
+   derivatives of FK, RNEA, CRBA, and ABA in pure C++ — validated against
+   the analytical derivatives to machine precision.
 
 Then: [exercises](exercises.md).
 
