@@ -14,13 +14,14 @@
 #include <string>
 #include <vector>
 
-#include <Eigen/Geometry>
-#include <gtest/gtest.h>
-
 #include "tinyspatial/algo/forward_kinematics.hpp"
 #include "tinyspatial/core/jet.hpp"
 #include "tinyspatial/diff/fk_derivatives.hpp"
 #include "tinyspatial/urdf/urdf_loader.hpp"
+
+#include <Eigen/Geometry>
+
+#include <gtest/gtest.h>
 
 namespace tinyspatial {
 namespace {
@@ -92,8 +93,12 @@ void check_fk_ad(const std::string& robot) {
   }
 }
 
-TEST(ForwardKinematicsAd, MatchesAnalyticalJacobianFranka) { check_fk_ad<7>("franka_fr3.urdf"); }
-TEST(ForwardKinematicsAd, MatchesAnalyticalJacobianUr5e) { check_fk_ad<6>("ur5e.urdf"); }
+TEST(ForwardKinematicsAd, MatchesAnalyticalJacobianFranka) {
+  check_fk_ad<7>("franka_fr3.urdf");
+}
+TEST(ForwardKinematicsAd, MatchesAnalyticalJacobianUr5e) {
+  check_fk_ad<6>("ur5e.urdf");
+}
 
 }  // namespace
 }  // namespace tinyspatial

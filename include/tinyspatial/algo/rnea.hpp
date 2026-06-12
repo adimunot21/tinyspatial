@@ -19,6 +19,12 @@
 ///
 /// Forward kinematics is run internally; the caller does not need to pre-call
 /// `forward_kinematics`.
+///
+/// Templated on the scalar: called on a `double` model it is ordinary inverse
+/// dynamics; called on a `model_cast<Jet>` model with a seeded `q`, `v`, or `a`
+/// it yields the exact analytical derivatives `∂τ/∂q`, `∂τ/∂v`, `∂τ/∂a` (the
+/// last being `M(q)`), cross-checked against `diff/rnea_derivatives.hpp` and
+/// `algo/crba.hpp` in `tests/unit/diff/test_rnea_ad.cpp`.
 #ifndef TINYSPATIAL_ALGO_RNEA_HPP
 #define TINYSPATIAL_ALGO_RNEA_HPP
 
@@ -40,19 +46,21 @@ namespace detail {
 
 /// Build the joint's spatial motion contribution `S · q_slice` (Featherstone's
 /// "v_J"). Returns a Motion in the joint's body frame.
-[[nodiscard]] inline Motion joint_subspace_motion(const Joint& j,
-                                                  const Eigen::Ref<const VectorX>& v_slice) {
+template <typename S>
+[[nodiscard]] MotionT<S> joint_subspace_motion(
+    const JointT<S>& j, const Eigen::Ref<const typename Types<S>::VectorX>& v_slice) {
+  using Vector3 = typename Types<S>::Vector3;
   return std::visit(
-      [&](const auto& jj) -> Motion {
+      [&](const auto& jj) -> MotionT<S> {
         using JT = std::decay_t<decltype(jj)>;
-        if constexpr (std::is_same_v<JT, JointRevolute>) {
-          return Motion(jj.axis * v_slice(0), Vector3::Zero());
-        } else if constexpr (std::is_same_v<JT, JointPrismatic>) {
-          return Motion(Vector3::Zero(), jj.axis * v_slice(0));
-        } else if constexpr (std::is_same_v<JT, JointFloating>) {
-          return Motion(v_slice.head<3>(), v_slice.tail<3>());
+        if constexpr (std::is_same_v<JT, JointRevoluteT<S>>) {
+          return MotionT<S>(jj.axis * v_slice(0), Vector3::Zero());
+        } else if constexpr (std::is_same_v<JT, JointPrismaticT<S>>) {
+          return MotionT<S>(Vector3::Zero(), jj.axis * v_slice(0));
+        } else if constexpr (std::is_same_v<JT, JointFloatingT<S>>) {
+          return MotionT<S>(v_slice.template head<3>(), v_slice.template tail<3>());
         } else {  // JointFixed
-          return Motion::zero();
+          return MotionT<S>::zero();
         }
       },
       j);
@@ -60,17 +68,19 @@ namespace detail {
 
 /// Project a wrench onto a joint's motion subspace: returns the per-joint
 /// generalised-force slice (`Sᵀ · F`). Output length equals `nv(j)`.
-inline void joint_subspace_project(const Joint& j, const Force& f, Eigen::Ref<VectorX> tau_slice) {
+template <typename S>
+void joint_subspace_project(const JointT<S>& j, const ForceT<S>& f,
+                            Eigen::Ref<typename Types<S>::VectorX> tau_slice) {
   std::visit(
       [&](const auto& jj) {
         using JT = std::decay_t<decltype(jj)>;
-        if constexpr (std::is_same_v<JT, JointRevolute>) {
+        if constexpr (std::is_same_v<JT, JointRevoluteT<S>>) {
           tau_slice(0) = jj.axis.dot(f.angular());
-        } else if constexpr (std::is_same_v<JT, JointPrismatic>) {
+        } else if constexpr (std::is_same_v<JT, JointPrismaticT<S>>) {
           tau_slice(0) = jj.axis.dot(f.linear());
-        } else if constexpr (std::is_same_v<JT, JointFloating>) {
-          tau_slice.head<3>() = f.angular();
-          tau_slice.tail<3>() = f.linear();
+        } else if constexpr (std::is_same_v<JT, JointFloatingT<S>>) {
+          tau_slice.template head<3>() = f.angular();
+          tau_slice.template tail<3>() = f.linear();
         } else {  // JointFixed
           (void)jj;
           (void)f;
@@ -87,9 +97,18 @@ inline void joint_subspace_project(const Joint& j, const Force& f, Eigen::Ref<Ve
 /// \pre `q.size() == model.nq()`, `v.size() == a.size() == tau.size() == model.nv()`.
 /// `data` is sized to `model.njoints()`.
 /// `gravity` is in the world frame; default `(0, 0, −9.81)`.
-inline void rnea(const Model& model, Data& data, const Eigen::Ref<const VectorX>& q,
-                 const Eigen::Ref<const VectorX>& v, const Eigen::Ref<const VectorX>& a,
-                 Eigen::Ref<VectorX> tau, const Vector3& gravity = Vector3(0, 0, -9.81)) {
+template <typename S>
+void rnea(const ModelT<S>& model, DataT<S>& data,
+          const Eigen::Ref<const typename Types<S>::VectorX>& q,
+          const Eigen::Ref<const typename Types<S>::VectorX>& v,
+          const Eigen::Ref<const typename Types<S>::VectorX>& a,
+          Eigen::Ref<typename Types<S>::VectorX> tau,
+          const typename Types<S>::Vector3& gravity = typename Types<S>::Vector3(0, 0, -9.81)) {
+  using Motion = MotionT<S>;
+  using Force = ForceT<S>;
+  using SE3 = SE3T<S>;
+  using Vector3 = typename Types<S>::Vector3;
+
   forward_kinematics(model, data, q);
 
   // Gravity trick: base "accelerates" at −g in the world frame.
@@ -97,10 +116,10 @@ inline void rnea(const Model& model, Data& data, const Eigen::Ref<const VectorX>
 
   // Outward pass: fill data.v[i], data.a[i], and data.f[i] (= net wrench on body i).
   for (int i = 0; i < model.njoints(); ++i) {
-    const Joint& j = model.joints[i];
+    const JointT<S>& j = model.joints[i];
     const int joint_nv = nv(j);
-    const Motion v_j = detail::joint_subspace_motion(j, v.segment(model.idx_v[i], joint_nv));
-    const Motion a_j = detail::joint_subspace_motion(j, a.segment(model.idx_v[i], joint_nv));
+    const Motion v_j = detail::joint_subspace_motion<S>(j, v.segment(model.idx_v[i], joint_nv));
+    const Motion a_j = detail::joint_subspace_motion<S>(j, a.segment(model.idx_v[i], joint_nv));
     const SE3 i_from_parent = data.pose_in_parent[i].inverse();
 
     if (model.parent[i] == -1) {
@@ -123,10 +142,10 @@ inline void rnea(const Model& model, Data& data, const Eigen::Ref<const VectorX>
 
   // Inward pass: project to joint torques, accumulate force at parent.
   for (int i = model.njoints() - 1; i >= 0; --i) {
-    const Joint& j = model.joints[i];
+    const JointT<S>& j = model.joints[i];
     const int joint_nv = nv(j);
     if (joint_nv > 0) {
-      detail::joint_subspace_project(j, data.f[i], tau.segment(model.idx_v[i], joint_nv));
+      detail::joint_subspace_project<S>(j, data.f[i], tau.segment(model.idx_v[i], joint_nv));
     }
     if (model.parent[i] != -1) {
       data.f[model.parent[i]] += data.pose_in_parent[i] * data.f[i];

@@ -59,6 +59,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     `compute_joint_jacobians` (`diff/fk_derivatives.hpp`) to **1e-10**. Two
     independently-derived derivative paths agreeing to machine precision — the
     correctness story of the differentiable-first bet. 154/154 tests green.
+  - **P2.4 — inverse dynamics (RNEA) is differentiable, triple-validated.**
+    `spatial/cross.hpp` and `algo/rnea.hpp` are templated on the scalar
+    (`cross_motion`/`cross_force` deduce their scalar; the typed `cross(...)` and
+    `rnea(...)` are scalar-generic). New `tests/unit/diff/test_rnea_ad.cpp` seeds
+    `q`/`v`/`a` as autodiff variables and checks AD `∂τ/∂q`, `∂τ/∂v`, `∂τ/∂a`
+    against `diff/rnea_derivatives.hpp` (Carpentier–Mansard recursion) **and**
+    AD `∂τ/∂a` against CRBA's `M(q)` to ~1e-9 on Franka and UR5e — three
+    independently-derived paths in agreement. 156/156 tests green; double path
+    unchanged.
 
 ### Added
 
