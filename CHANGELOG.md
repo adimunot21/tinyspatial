@@ -8,6 +8,28 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Differentiable-first groundwork (Phase 2, P2.0) — the `Scalar`-generic seam
+  + a forward-mode autodiff scalar.** The goal: run FK / Jacobian / RNEA on a
+  header-only dual type and get exact gradients, no CppAD / Python / JAX.
+  - `core/types.hpp` now exposes the whole algebra templated on the scalar via
+    `Types<S>`, while keeping the exact concrete `double` aliases every header
+    uses (`Types<double>::Vector3` is the old `Eigen::Matrix<Scalar,3,1>`), so
+    nothing downstream changes and the library compiles bit-identically.
+  - `core/jet.hpp` — `Jet<N>`, a forward-mode dual number (value + `N`-vector of
+    partials) with operator overloads, ADL math functions
+    (`sqrt`/`sin`/`cos`/`asin`/`atan2`/`abs`/`pow`/`min`/`max`/…), an
+    `Eigen::NumTraits<Jet<N>>` specialisation, and `ScalarBinaryOpTraits` for
+    mixing with `double`. Design follows Ceres' `Jet`; ~330 lines, zero new
+    dependencies.
+  - `tests/unit/core/test_jet.cpp` — the **proof-of-concept gate**: arithmetic
+    and transcendental derivatives against closed forms, `Eigen::Matrix<Jet>`
+    products, and the riskiest interop — `Eigen::Quaternion<Jet>` through
+    `normalize()` + `toRotationMatrix()` with `dR/dθ` checked against the
+    analytic rotation derivative to 1e-10. Passing this gate means templating the
+    algorithms on the scalar is mechanical.
+
+### Added
+
 - **`validation.yml` workflow — Pinocchio parity in CI (CLAUDE.md §10/§11).**
   - Runs the `tests/validation/test_kinematics.py` cross-check on PRs that touch
     `include/`, `src/`, or `tests/validation/`, plus a nightly schedule and

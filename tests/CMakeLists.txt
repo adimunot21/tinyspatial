@@ -27,6 +27,7 @@ function(tinyspatial_add_test name)
 endfunction()
 
 tinyspatial_add_test(test_version unit/test_version.cpp)
+tinyspatial_add_test(test_jet unit/core/test_jet.cpp)
 tinyspatial_add_test(test_so3 unit/liegroup/test_so3.cpp)
 tinyspatial_add_test(test_se3 unit/liegroup/test_se3.cpp)
 tinyspatial_add_test(test_cross unit/spatial/test_cross.cpp)
