@@ -83,6 +83,13 @@ class SO3T {
   /// The equivalent 3×3 rotation matrix.
   [[nodiscard]] Matrix3 matrix() const { return quat_.toRotationMatrix(); }
 
+  /// Cast to another scalar type (e.g. lift a constant rotation into an
+  /// autodiff scalar with zero derivative).
+  template <typename S2>
+  [[nodiscard]] SO3T<S2> cast() const {
+    return SO3T<S2>(typename Types<S2>::Quaternion(quat_.coeffs().template cast<S2>()));
+  }
+
   /// Group composition: `(*this) ∘ rhs`.
   [[nodiscard]] SO3T operator*(const SO3T& rhs) const { return SO3T(quat_ * rhs.quat_); }
 

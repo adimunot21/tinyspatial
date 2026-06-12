@@ -41,6 +41,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     `Jet` and validates the autodiff against analytic truths: `log(exp(ω))` and
     `log(exp(ξ))` Jacobians equal the identity (I₃, I₆), and
     `d(R·p)/dω|₀ = -[p]_×` exercises the small-angle branch.
+  - **P2.2 — spatial value types + model are Scalar-generic.**
+    `spatial/{motion,force,inertia}.hpp` and `model/{joint,model}.hpp` are now
+    templated (`MotionT<S>`, `ForceT<S>`, `SpatialInertiaT<S>`, `JointRevoluteT<S>`
+    …, `ModelT<S>`, `DataT<S>`) with the `double` aliases every consumer uses
+    kept intact — the whole library (RNEA/CRBA/ABA/IK/URDF/bindings) builds
+    unchanged. Added `cast<S2>()` on `SO3T`/`SE3T`/`SpatialInertiaT`/the joint
+    variants, plus `model_cast<S2>()`, to lift a URDF-loaded `double` model into
+    an autodiff scalar with zero-derivative constants. (`spatial/cross.hpp` and
+    `plucker.hpp` stay `double` — not on the FK path; they templatize with RNEA.)
+  - **P2.3 — forward kinematics is differentiable, validated against the
+    analytical oracle.** `algo/forward_kinematics.hpp` is templated on the
+    scalar. New `tests/unit/diff/test_fk_ad.cpp` lifts the Franka and UR5e models
+    with `model_cast<Jet<nv>>`, seeds `q` as autodiff variables, runs the SAME
+    `forward_kinematics`, recovers the body-frame Jacobian from each pose's Jet
+    partials (`vee(oMiᵀ ∂oMi/∂q_k)`), and asserts it matches
+    `compute_joint_jacobians` (`diff/fk_derivatives.hpp`) to **1e-10**. Two
+    independently-derived derivative paths agreeing to machine precision — the
+    correctness story of the differentiable-first bet. 154/154 tests green.
 
 ### Added
 

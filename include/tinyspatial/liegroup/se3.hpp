@@ -52,6 +52,13 @@ class SE3T {
   [[nodiscard]] const SO3& rotation() const { return rotation_; }
   [[nodiscard]] const Vector3& translation() const { return translation_; }
 
+  /// Cast to another scalar type (e.g. lift a constant transform into an
+  /// autodiff scalar with zero derivative).
+  template <typename S2>
+  [[nodiscard]] SE3T<S2> cast() const {
+    return SE3T<S2>(rotation_.template cast<S2>(), translation_.template cast<S2>());
+  }
+
   /// The equivalent 4×4 homogeneous matrix.
   [[nodiscard]] Matrix4 matrix() const {
     Matrix4 m = Matrix4::Identity();

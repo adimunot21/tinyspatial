@@ -7,12 +7,13 @@
 ///   - d(exp(ω)·p)/dω |_{ω=0} = -[p]_×  (the body-frame derivative at identity).
 #include <cmath>
 
-#include <Eigen/Geometry>
-#include <gtest/gtest.h>
-
 #include "tinyspatial/core/jet.hpp"
 #include "tinyspatial/liegroup/se3.hpp"
 #include "tinyspatial/liegroup/so3.hpp"
+
+#include <Eigen/Geometry>
+
+#include <gtest/gtest.h>
 
 namespace {
 
@@ -32,7 +33,8 @@ TEST(LieGroupAd, So3LogExpRoundTripJacobianIsIdentity) {
   for (int i = 0; i < 3; ++i) {
     EXPECT_NEAR(back[i].a, omega[i].a, 1e-12) << "value round-trip, row " << i;
     for (int j = 0; j < 3; ++j) {
-      EXPECT_NEAR(back[i].v[j], i == j ? 1.0 : 0.0, 1e-9) << "d log/d omega (" << i << "," << j << ")";
+      EXPECT_NEAR(back[i].v[j], i == j ? 1.0 : 0.0, 1e-9)
+          << "d log/d omega (" << i << "," << j << ")";
     }
   }
 }
