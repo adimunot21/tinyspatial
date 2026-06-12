@@ -78,6 +78,18 @@ damped-least-squares solver, position-only so a 2-link arm can track a
 2-D point) runs a handful of iterations per mouse-move and puts the tip
 on your cursor.
 
+## Try it right here
+
+The widget below is the live `ik.html` demo, embedded from the deployed
+site (it loads the `tinyspatial.wasm` this workflow builds). Drag inside
+the box — the red ring is your target, the blue arm is the C++ solver's
+answer. If you're reading this on GitHub rather than the course site, open
+[`web/demo/ik.html`](../../web/demo/ik.html) locally instead.
+
+<iframe src="../assets/wasm-demo/ik.html" title="Live inverse-kinematics demo"
+        width="100%" height="580" loading="lazy"
+        style="border: 1px solid #e5e7eb; border-radius: 8px;"></iframe>
+
 ## Build and run it yourself
 
 ```bash

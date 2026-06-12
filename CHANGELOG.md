@@ -37,6 +37,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   The solve was verified against the native library (converges in ~6 iterations,
   reaches the target exactly); the binding compile is re-checked by the `wasm`
   CI workflow.
+- **The live widget ships on the course site.** `docs.yml` now compiles the WASM
+  module with Emscripten, runs mkdocs, and bundles the demo pages +
+  `tinyspatial.{js,wasm}` into the built site under `assets/wasm-demo/`. Course
+  chapter 17 embeds the IK demo via an `<iframe>`, so the deployed GitHub Pages
+  site runs the real C++ solver in the reader's browser. (The deploy path runs
+  only on `main`.)
 
 - **Differentiable-first groundwork (Phase 2, P2.0) — the `Scalar`-generic seam
   + a forward-mode autodiff scalar.** The goal: run FK / Jacobian / RNEA on a
