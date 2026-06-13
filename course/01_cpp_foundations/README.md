@@ -1,93 +1,52 @@
-# Chapter 01 — C++ foundations
+# Chapter 01 — C++ features used by the library
 
-This chapter is short on purpose. There already exist excellent, free,
-patiently-paced introductions to C++, and rewriting them here would be a
-waste of your time and ours. What this chapter *does* do is tell you
-which resources to use, which parts to focus on for this codebase, and
-what minimum subset will let you start reading `tinyspatial`.
+This chapter is a reference, not a tutorial. It assumes working C++ and catalogues
+the specific C++20 features `tinyspatial` relies on, so that the implementation
+chapters read without friction. From Chapter 03 onward the language is the
+vehicle, not the subject: the content is robotics, expressed in C++.
 
-> **You do not need to be a C++ expert to read this library.** The
-> chapters from 03 onward read more like a math book than a C++ book; the
-> language is the *vehicle*, not the subject. What you need is enough C++
-> to follow a function signature and trace a loop.
+For the language itself, the canonical reference is
+[cppreference.com](https://en.cppreference.com/w/cpp). For a structured
+introduction, [learncpp.com](https://www.learncpp.com) is thorough and free;
+[*A Tour of C++*](https://www.stroustrup.com/tour3.html) (Stroustrup) is the
+condensed overview, and *Effective Modern C++* (Meyers) covers idiomatic use.
 
-## If you've never written a line of code
+## C++20 features the library uses
 
-Go through **[learncpp.com](https://www.learncpp.com)** chapters 1–6.
-That's enough to:
-
-- Read a function signature.
-- Trace a `for` loop.
-- Understand what a class is.
-
-Don't try to memorise it. Run the examples, change one line, see what
-breaks. Come back to this course when you can read this without blinking:
-
-```cpp
-double dot(const Vector3& a, const Vector3& b) {
-  double sum = 0.0;
-  for (int i = 0; i < 3; ++i) {
-    sum += a(i) * b(i);
-  }
-  return sum;
-}
-```
-
-(If you can: you're ready.)
-
-## If you know an older C++
-
-The library uses **C++20**, which has a few features you may not have
-seen:
-
-- **`concepts`** (constraints on template parameters). Mostly avoidable;
-  we use them lightly.
-- **`std::variant`** + **`std::visit`** for tagged unions. We use this
-  heavily for the joint types (chapter 06). Read
+- **`std::variant` + `std::visit`.** Joint types are a closed, tagged union
+  (`JointRevoluteT`, `JointPrismaticT`, `JointFixedT`, `JointFreeFlyerT`)
+  dispatched with `std::visit`. This is the central data-structure decision of the
+  model layer; see Chapter 06 and
   [cppreference's `std::visit` page](https://en.cppreference.com/w/cpp/utility/variant/visit).
-- **`if constexpr`** for compile-time branching. Always appears with
-  `std::visit` in this codebase.
-- **`std::expected`** (C++23, with a header polyfill). Used at the public
-  API for fallible operations like URDF parsing.
+- **`if constexpr`.** Compile-time branching, used inside the `std::visit` lambdas
+  and in the scalar-generic code paths to specialise on the joint or scalar type
+  without runtime cost.
+- **`concepts`.** Template constraints, applied lightly to the scalar type so that
+  the algorithms accept both `double` and the autodiff scalar `Jet<N>` (Chapter 13).
+- **`std::expected`.** Returned at the public API for fallible operations such as
+  URDF parsing. Exceptions are reserved for programmer errors — precondition
+  violations — not for expected runtime failure.
 
-The cppreference site is the canonical reference. Bookmark
-[cppreference.com](https://en.cppreference.com/w/cpp).
+## Two codebase-specific conventions
 
-## If you know modern C++ from another project
+These two patterns recur throughout the source and are worth internalising before
+reading the algorithms:
 
-You can probably skim this chapter and move on. The two things specific
-to this codebase that might surprise you:
+1. **Eigen reference arguments.** Inputs are passed by
+   `const Eigen::Ref<const MatT>&` and outputs by `Eigen::Ref<MatT>`. This accepts
+   any Eigen expression of the right shape — a `Map`, a `.segment(...)` view, a
+   block — without copying, while making the input/output direction explicit in
+   the signature.
 
-1. **Eigen idioms.** We pass matrices by `const Eigen::Ref<const MatT>&`
-   for inputs and `Eigen::Ref<MatT>` for outputs. This accepts any Eigen
-   expression with the right shape (a slice, a column block, a `Map`)
-   without copying.
+2. **`std::expected` over exceptions.** A public API that can fail returns
+   `std::expected<T, Error>`. The one documented exception is the iterative IK
+   family, which returns a result struct with a `converged` flag, because
+   "ran N iterations, here is the best answer and whether it met tolerance" is the
+   honest shape of that operation.
 
-2. **`std::expected` instead of exceptions.** Public APIs that can fail
-   return `std::expected<T, Error>`. Exceptions are reserved for
-   programmer errors (precondition violations).
+## Out of scope
 
-## What you don't need to know
+The library does not use, and these chapters do not require: multithreading,
+coroutines, custom allocators, networking, regex, or non-trivial stream I/O.
 
-Plenty of C++ has nothing to do with this library. You can safely skip,
-for now:
-
-- Multi-threading (`std::thread`, `std::mutex`, `std::atomic`).
-- Coroutines.
-- Streams (`std::cout` is fine; we don't do fancy I/O).
-- Networking, regex, the filesystem library (other than minor uses).
-- Custom allocators.
-
-## Where to go for more depth
-
-When you're comfortable reading the code and you want to *write* in
-this style:
-
-- **A Tour of C++** (Stroustrup) — the language designer's high-level
-  overview. Read it after you can write small programs.
-- **Effective Modern C++** (Meyers) — practical guidelines. Less useful
-  the first year, indispensable the second.
-
-## Next
-
-When you're ready: [Chapter 02 — Linear algebra](../02_linear_algebra/README.md).
+Next: [Chapter 02 — Linear algebra](../02_linear_algebra/README.md).
