@@ -30,24 +30,57 @@ that sign is exactly what keeps the whole matrix symmetric. (The whole *thing*
 must be symmetric: $I_s$ is the Hessian of kinetic energy $\tfrac12 m^\top I_s
 m$.)
 
-## Why we store it separably
+## Why it is stored separably
 
-`tinyspatial::SpatialInertia` does **not** store the $6\times6$ matrix. It
-stores the three things you'd actually measure on the body — mass, COM,
-inertia-about-COM — and constructs the $6\times6$ on demand via `matrix6()`.
+`SpatialInertiaT` does **not** store the $6\times6$ matrix. It stores the three
+measurable quantities and constructs the $6\times6$ on demand:
 
-The payoff is that SE(3) transforms become cleanly element-wise:
+```cpp
+template <typename S>
+class SpatialInertiaT {
+  // …
+ private:
+  S mass_;
+  Vector3 com_;
+  Matrix3 inertia_com_;   // Ī about the centre of mass
+};
+```
 
-- **mass** is invariant,
-- **COM** moves as a point: $c' = T\cdot c = R\,c + t$,
-- **inertia about COM** rotates: $\bar I' = R\,\bar I\,R^\top$.
+The payoff is that an SE(3) transform acts element-wise on the stored parameters:
 
-That's three lines of code. The equivalent on the $6\times6$ form is a
-congruence $I_s' = X^{-\top} I_s X^{-1}$ — correct, but every multiply
-contaminates the symmetry of the result with floating-point noise. After many
-transforms the stored matrix slowly stops being symmetric, and you have to
-periodically re-symmetrise. The separable form has nothing to lose. The library
-test `Se3TransformMatchesCongruence` confirms the two agree.
+```cpp
+template <typename S>
+[[nodiscard]] SpatialInertiaT<S> operator*(const SE3T<S>& t, const SpatialInertiaT<S>& i) {
+  const typename Types<S>::Matrix3 r = t.rotation().matrix();
+  return SpatialInertiaT<S>(i.mass(), t.act(i.com()), r * i.inertia_com() * r.transpose());
+}
+```
+
+The mass is invariant; the COM moves as a point ($c' = R\,c + t$, via `t.act`);
+the inertia about COM rotates ($\bar I' = R\,\bar I\,R^\top$). The equivalent on
+the $6\times6$ form is the congruence $I_s' = X^{-\top} I_s X^{-1}$ — correct, but
+every multiply contaminates the symmetry of the result with floating-point noise,
+so a stored matrix must be periodically re-symmetrised. The separable form has no
+symmetry to lose. `Se3TransformMatchesCongruence` confirms the two agree.
+
+When the $6\times6$ form is genuinely needed (for a parity comparison, say), it is
+assembled from the same parts:
+
+```cpp
+[[nodiscard]] Matrix6 matrix6() const {
+  const Matrix3 cx = skew(com_);
+  Matrix6 i = Matrix6::Zero();
+  i.template topLeftCorner<3, 3>() = inertia_origin();      // Ī_O = Ī_com − m·c×·c×
+  i.template topRightCorner<3, 3>() = mass_ * cx;
+  i.template bottomLeftCorner<3, 3>() = mass_ * cx.transpose();
+  i.template bottomRightCorner<3, 3>() = mass_ * Matrix3::Identity();
+  return i;
+}
+```
+
+The off-diagonal blocks are $m\,c_\times$ and $m\,c_\times^\top = -m\,c_\times$ —
+the sign relation that makes $I_s$ symmetric, here a consequence of the
+construction rather than something to maintain by hand.
 
 ## The composite-body trick
 
@@ -68,10 +101,10 @@ representation.
 
 | Concept | File · symbol |
 | ------- | ------------- |
-| Spatial inertia | [`inertia.hpp`](../../include/tinyspatial/spatial/inertia.hpp) · `class SpatialInertia` |
-| 6×6 form | [`inertia.hpp`](../../include/tinyspatial/spatial/inertia.hpp) · `SpatialInertia::matrix6()` |
-| Inertia · motion → force | `operator*(SpatialInertia, Motion)` |
-| Frame change | `operator*(SE3, SpatialInertia)` |
-| Composite-body addition | `SpatialInertia::operator+` |
+| Spatial inertia | [`inertia.hpp`](../../include/tinyspatial/spatial/inertia.hpp) · `SpatialInertiaT`, `SpatialInertia` |
+| 6×6 form | `inertia.hpp` · `SpatialInertiaT::matrix6` |
+| Inertia · motion → force | `inertia.hpp` · `operator*(SpatialInertiaT, MotionT)` |
+| Frame change | `inertia.hpp` · `operator*(SE3T, SpatialInertiaT)` |
+| Composite-body addition | `inertia.hpp` · `SpatialInertiaT::operator+` |
 
 Next: [How Featherstone thinks](05_how_featherstone_thinks.md).

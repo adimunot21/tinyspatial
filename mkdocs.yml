@@ -67,6 +67,7 @@ nav:
       - Axis–angle: 03_rotations_and_transforms/03_axis_angle.md
       - Quaternions: 03_rotations_and_transforms/04_quaternions.md
       - Rigid transforms: 03_rotations_and_transforms/05_rigid_transforms.md
+      - "In code: SO3T": 03_rotations_and_transforms/06_in_code.md
       - Exercises: 03_rotations_and_transforms/exercises.md
   - "4 · Lie groups":
       - Overview: 04_lie_groups/README.md

@@ -16,10 +16,36 @@ $$
 \mathrm{Ad}_T = \begin{bmatrix} R & 0 \\ [t]_\times R & R \end{bmatrix}.
 $$
 
-Read the blocks: the angular part just gets rotated ($R$). The linear part gets
-rotated *and* picks up a $[t]_\times R\,\omega$ term — because a pure rotation,
-viewed from a translated origin, looks like it also has a linear velocity (think
-of a point on a spinning wheel, seen from the axle versus from the rim).
+Read the blocks: the angular part is rotated ($R$). The linear part is rotated
+*and* picks up a $[t]_\times R\,\omega$ term, because a pure rotation viewed from a
+translated origin also exhibits a linear velocity — a point on a spinning wheel
+seen from the axle versus from the rim.
+
+## In code: `SE3T::adjoint`
+
+The matrix is assembled block by block, exactly matching the formula above:
+
+```cpp
+[[nodiscard]] Matrix6 adjoint() const {
+  const Matrix3 r = rotation_.matrix();
+  Matrix6 ad = Matrix6::Zero();
+  ad.template topLeftCorner<3, 3>() = r;
+  ad.template bottomRightCorner<3, 3>() = r;
+  ad.template bottomLeftCorner<3, 3>() = skew(translation_) * r;
+  return ad;
+}
+```
+
+The two diagonal blocks are the rotation $R$; the single off-diagonal block is the
+coupling term $[t]_\times R$. The angular-first ordering is what places that
+coupling in the *bottom-left* (angular → linear) rather than the top-right; under
+Pinocchio's linear-first convention the same physics lands in the opposite corner.
+The inverse adjoint is obtained without a separate derivation, using
+$\mathrm{Ad}_T^{-1} = \mathrm{Ad}_{T^{-1}}$:
+
+```cpp
+[[nodiscard]] Matrix6 adjoint_inverse() const { return inverse().adjoint(); }
+```
 
 ## The defining identity
 
