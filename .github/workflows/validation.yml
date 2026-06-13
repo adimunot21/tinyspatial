@@ -78,7 +78,14 @@ jobs:
           cmake --build build/validation -j
 
       - name: Run Pinocchio parity suite
-        run: ctest --preset=validation -L pinocchio_parity --output-on-failure
+        run: |
+          # Pinocchio's cmeel wheels keep their native libs (libtinyxml2.so.10,
+          # liburdfdom, …) in the cmeel prefix; the loader needs them on the
+          # path or `import pinocchio` fails with a missing-.so ImportError.
+          cmeel_lib=$(echo "$PWD"/.venv/lib/python*/site-packages/cmeel.prefix/lib)
+          echo "cmeel lib dir: $cmeel_lib"
+          export LD_LIBRARY_PATH="${cmeel_lib}:${LD_LIBRARY_PATH}"
+          ctest --preset=validation -L pinocchio_parity --output-on-failure
 
       - name: Show regenerated parity table
         if: always()
