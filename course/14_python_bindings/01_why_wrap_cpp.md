@@ -58,9 +58,8 @@ Concrete differences that matter:
 | stable ABI          | Optional                          | First-class (`STABLE_ABI` flag) |
 
 For a portfolio library that aspires to compile in under 90 seconds in CI,
-nanobind is the obvious choice. (CLAUDE.md §10 sets that bar; see for
-yourself — `cmake --build build/validation -j` finishes in 30–40 s on a
-modest machine.)
+nanobind is the obvious choice: `cmake --build build/validation -j`
+finishes in 30–40 s on a modest machine.
 
 ## What 'zero-copy' actually means
 

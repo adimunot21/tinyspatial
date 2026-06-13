@@ -56,7 +56,7 @@ machines much better than the absolute number.
 
 ## What 'within 1.4× of Pinocchio' means
 
-CLAUDE.md §12 sets the bar: **RNEA throughput on a 7-DoF Franka, within
+The performance bar is **RNEA throughput on a 7-DoF Franka, within
 1.4× of Pinocchio**. Two reasons that ratio is the right metric:
 
 1. **Pinocchio is the reference implementation everyone in the field

@@ -101,7 +101,7 @@ handle this; if you're rolling your own comparison, watch out.
 
 ## 5. Quaternion sign ambiguity
 
-`tinyspatial` normalises to `w >= 0` (CLAUDE.md §15). When you read a
+`tinyspatial` normalises to `w >= 0`. When you read a
 quaternion out of `SO3.quaternion()`, it's the canonical representative,
 not necessarily the one you put in:
 

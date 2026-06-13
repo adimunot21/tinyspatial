@@ -44,7 +44,7 @@ before every commit.
 
 The parity suite needs a Python environment with Pinocchio 3.9. It is **not**
 part of the default build (its toolchain must never contaminate the standalone
-C++ build — CLAUDE.md §15), so it lives behind its own preset.
+C++ build), so it lives behind its own preset.
 
 ```bash
 # One-time: a venv with the pinned oracle.
@@ -81,11 +81,11 @@ in `algo/`, re-run the relevant benchmark and note the delta in your PR.
 # Formatting is enforced in CI. The .clang-format file is the source of truth.
 clang-format --dry-run --Werror $(git ls-files '*.hpp' '*.cpp')
 
-# clang-tidy is advisory (CLAUDE.md §7) but warnings should be zero.
+# clang-tidy is advisory but warnings should be zero.
 clang-tidy -p build/debug <changed-files>
 ```
 
-The house style (CLAUDE.md §7) in one paragraph: C++20; `PascalCase` types,
+The house style, in one paragraph: C++20; `PascalCase` types,
 `snake_case` functions/variables, `kCamelCase` constants; no `using namespace`
 at file scope; pass Eigen inputs by `const Eigen::Ref<const MatT>&` and outputs
 by `Eigen::Ref<MatT>`; fixed-size Eigen types wherever the dimension is known;
@@ -94,7 +94,7 @@ no `auto` return types on the public API; Doxygen (`///` with `\param`,
 
 ## The dual-track rule
 
-The repo serves two audiences and they must not bleed (CLAUDE.md §3):
+The repo serves two audiences and they must not bleed:
 
 - **Library** (`include/`, `src/`, `tests/`) — terse, production-grade. **No
   tutorial prose in headers.**
@@ -131,7 +131,7 @@ deliverable, not a follow-up.
 
 ## Where to look when stuck
 
-In priority order (CLAUDE.md §16): re-read the corresponding Pinocchio source
+In priority order: re-read the corresponding Pinocchio source
 (it is the reference), then Featherstone (2008) for dynamics or Lynch & Park
 (2017) for kinematics conventions, then open a focused issue. Do **not** fabricate
 a workaround, comment out a failing test, or relax a numerical tolerance.

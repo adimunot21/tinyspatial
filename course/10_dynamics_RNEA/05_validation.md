@@ -36,7 +36,7 @@ For each fixture URDF (`simple_arm`, `franka_fr3`, `ur5e`, `so_arm101`):
 
 ## The tolerance
 
-`CLAUDE.md` §11 pins the cross-check tolerance at **`1e-10` absolute**, with
+The cross-check tolerance is fixed at **`1e-10` absolute**, with
 **no relaxation without a written justification**. In practice we observe
 agreement at $10^{-14}$–$10^{-15}$ — four to five orders of magnitude
 inside the spec. That margin is meaningful: it tells you we are not just

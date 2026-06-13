@@ -30,8 +30,8 @@ Outputs:
 
 `Eigen::Ref` lets the caller pass any Eigen expression with the right
 shape — a slice, a column of a bigger matrix, etc. — without copying.
-The `const Ref<const>` form is the read-only variant. (CLAUDE.md §7 has
-the full rationale.)
+The `const Ref<const>` form is the read-only variant: a zero-copy view the
+callee promises not to modify.
 
 ## The forward kinematics call
 

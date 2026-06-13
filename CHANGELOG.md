@@ -118,12 +118,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     shows the full pattern — `model_cast<Jet>`, seed `q`, read `∂(ee)/∂q` and
     `∂g/∂q` straight out of FK and RNEA. Course chapter
     [13.5 "Differentiable everything: the Jet approach"](course/13_differentiable_ik/05_differentiable_dynamics.md)
-    gives the capability a home (CLAUDE.md §3), and the README gains a
+    gives the capability a course home, and the README gains a
     "Differentiable in pure C++" section.
 
 ### Added
 
-- **`validation.yml` workflow — Pinocchio parity in CI (CLAUDE.md §10/§11).**
+- **`validation.yml` workflow — Pinocchio parity in CI.**
   - Runs the `tests/validation/test_kinematics.py` cross-check on PRs that touch
     `include/`, `src/`, or `tests/validation/`, plus a nightly schedule and
     manual dispatch. Uses a pip venv with the pinned `pin==3.9.0` cmeel wheels
@@ -140,10 +140,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- **`ci.yml` expanded from the Phase-0 single job to the CLAUDE.md §10 matrix:**
+- **`ci.yml` expanded from the Phase-0 single job to the full CI matrix:**
   `ubuntu-22.04/gcc-12` and `ubuntu-24.04/clang-17`, each in Debug (ASan+UBSan)
   and Release. Added a `lint` job: `clang-format` (gating) + `clang-tidy`
-  (advisory, per CLAUDE.md §7). Release configs skip benchmarks to protect the
+  (advisory). Release configs skip benchmarks to protect the
   time budget; the slow Pinocchio cross-check stays in `validation.yml`.
 - **Honest performance accounting.** The README and `PROJECT_PLAN.md` §2 now
   state plainly that the `≥ 6 M RNEA/s, within 1.4×` figure is an *aspiration*,
@@ -151,7 +151,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Pinocchio C++ — and that the Pinocchio comparison column is an estimate
   pending a measured C++ head-to-head. No claim now reads as achieved when it
   is not.
-- **Documented the IK `std::expected` exception** in `CLAUDE.md` §7 and
+- **Documented the IK `std::expected` exception** in
   `docs/ARCHITECTURE.md`: iterative best-effort solvers return a result struct
   with a `converged` flag by design.
 
@@ -170,7 +170,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Required because mkdocs 1.4+ rejects `docs_dir: .` (the docs dir must be a
   child of the config file). Nav paths are unchanged (still relative to
   `docs_dir`). Local invocation simplifies from `mkdocs serve -f course/mkdocs.yml`
-  to just `mkdocs serve`; CLAUDE.md updated.
+  to just `mkdocs serve`.
 
 ## [0.1.0] — 2026-05-27
 
@@ -256,7 +256,7 @@ to a mkdocs-material site.
     the affected paths).
   - **Cumulative Phase 9 result on Franka**: RNEA 4540 → 2567 ns (**-43%
     total**), CRBA 6776 → 3893 ns (**-43% total**). Now at ~1.6× of
-    Pinocchio C++ on RNEA (CLAUDE.md §12 target is 1.4×).
+    Pinocchio C++ on RNEA (the target is 1.4×).
   - `docs/BENCHMARKS.md` regenerated with cumulative table and the new
     "future work" list (ABA articulated-inertia, cached rotation matrices).
 
@@ -275,8 +275,8 @@ to a mkdocs-material site.
   - **Cumulative on `franka_fr3`**: RNEA 4540 → 2908 ns (-36%); ABA
     13398 → 12191 ns (-9%); FK 828 → 588 ns (-29%); `compute_joint_jacobians`
     1881 → 1612 ns (-14%).
-  - **vs Pinocchio C++**: was 2.8×, now ~1.8× (target per CLAUDE.md §12
-    is 1.4×). All Pinocchio parity tests still pass at the same numerical
+  - **vs Pinocchio C++**: was 2.8×, now ~1.8× (the target is 1.4×).
+    All Pinocchio parity tests still pass at the same numerical
     accuracy (RNEA 7e-14, FK 1e-15, CRBA 5e-15).
   - `docs/BENCHMARKS.md` regenerated with the new headline numbers and
     the Phase 9c roadmap (variant→switch, CRBA subspace caching).
@@ -428,8 +428,8 @@ to a mkdocs-material site.
     `crba(model, q)`, `aba(model, q, v, tau, gravity)`.
   - **Benchmarks** (`benchmarks/bench_rnea.cpp`, Google Benchmark): RNEA /
     CRBA / ABA throughput on all four fixtures. Baseline on a 7-DoF Franka:
-    RNEA 194K/s, CRBA 122K/s, ABA 63K/s. CLAUDE.md §12 target is 6M/s on
-    RNEA — the gap is what later optimisation work is for. Recorded in
+    RNEA 194K/s, CRBA 122K/s, ABA 63K/s. The RNEA throughput target is 6M/s
+    — the gap is what later optimisation work is for. Recorded in
     [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).
   - Course chapters [10 (RNEA, 5 sub-chapters)](course/10_dynamics_RNEA/README.md)
     and [11 (ABA + CRBA, 5 sub-chapters)](course/11_ABA_and_CRBA/README.md),
@@ -455,7 +455,7 @@ to a mkdocs-material site.
     each fixture URDF in both libraries over 1000 random configurations.
     Agreement is at **~1e-15 (machine precision)** for FK and all three
     Jacobian frames on every robot — five orders of magnitude inside the
-    `1e-10` tolerance specified in `CLAUDE.md` §11.
+    `1e-10` validation tolerance.
   - First entry in [`docs/PINOCCHIO_PARITY.md`](docs/PINOCCHIO_PARITY.md).
   - Course chapters 08 (forward kinematics, 4 sub-chapters) and 09
     (Jacobians, 5 sub-chapters), each with exercises and "Where this lives"

@@ -14,7 +14,7 @@ Phase 3 acceptance criterion ("all three fixture URDFs load without errors").
 
 **Why synthetic for now.** The upstream URDFs are usually distributed as
 `.urdf.xacro` files that require the ROS xacro preprocessor; we explicitly do
-not support xacro (CLAUDE.md §3 Phase 3 risks). Resolving xacro and obtaining
+not support xacro. Resolving xacro and obtaining
 permissively-licensed expanded URDFs is a small project of its own, and is
 deferred to Phase 4, where the Pinocchio cross-validation will require URDFs
 that produce the same kinematics in both libraries.

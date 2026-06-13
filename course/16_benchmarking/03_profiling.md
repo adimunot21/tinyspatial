@@ -109,8 +109,8 @@ sudo sh -c 'echo "kernel.perf_event_paranoid = 1" > /etc/sysctl.d/99-perf.conf'
 sudo setcap cap_perfmon=ep ./bench_rnea
 ```
 
-CLAUDE.md notes that this maintainer's machine has a sudo password, so
-the temporary setting is the easiest fix when you actually need it.
+On a machine where you hold sudo, the temporary `perf_event_paranoid`
+setting is the easiest fix when profiling access is needed.
 
 ## Callgrind — the slow, exact profiler
 

@@ -1,7 +1,7 @@
 # Pinocchio parity — `tinyspatial`
 
 Numeric agreement with **Pinocchio 3.9.0** on each fixture URDF, over **1000** random configurations (fixed seed `0xC0FFEE`).
-Tolerance is **1e-10** absolute (CLAUDE.md §11). Pinocchio Jacobians are permuted to angular-first row order before comparison; this is a documented convention difference, not a bug (CLAUDE.md §5).
+Tolerance is **1e-10** absolute. Pinocchio Jacobians are permuted to angular-first row order before comparison; this is a documented convention difference, not a bug.
 
 ## Forward kinematics + Jacobians (Phase 4)
 

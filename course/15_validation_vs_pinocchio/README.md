@@ -59,4 +59,4 @@ output.
 | Validation test driver        | [`tests/validation/test_kinematics.py`](../../tests/validation/test_kinematics.py) |
 | Python-side parity (pytest)   | [`python/tests/test_parity.py`](../../python/tests/test_parity.py) |
 | Committed parity numbers      | [`docs/PINOCCHIO_PARITY.md`](../../docs/PINOCCHIO_PARITY.md) |
-| Build flag for Pinocchio link | `TINYSPATIAL_BUILD_VALIDATION=ON` (see [CLAUDE.md §8](../../CLAUDE.md)) |
+| Build flag for Pinocchio link | `TINYSPATIAL_BUILD_VALIDATION=ON` |

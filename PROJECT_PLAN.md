@@ -1,6 +1,6 @@
 # PROJECT_PLAN.md — `tinyspatial`
 
-> **What** we are building and **when**. `CLAUDE.md` covers *how*.
+> **What** we are building and **when**.
 
 ---
 
@@ -19,11 +19,11 @@ A header-mostly C++20 library that re-implements the core rigid-body kinematics 
 
 …validated numerically against **Pinocchio 3.9** to `1e-10` on the Franka FR3, UR5e, and SO-ARM101.
 
-## 2. Success criteria (resume metric)
+## 2. Success criteria
 
-> "Open-source C++20 rigid-body dynamics library (≥ 250 GitHub stars, ~1.6 K LoC of unit tests, full-build CI < 90 s). RNEA / ABA / CRBA results numerically match Pinocchio 3.9 to `1e-10` on the Franka FR3, UR5e, and SO-ARM101 URDFs. On a 7-DoF Franka model, achieves > 6M RNEA evaluations / second / core on x86, within 1.4× of Pinocchio's hand-tuned implementation."
+The project targets an open-source C++20 rigid-body dynamics library with ≥ 250 GitHub stars, ~1.6 K LoC of unit tests, and a full-build CI under 90 s. RNEA / ABA / CRBA results must numerically match Pinocchio 3.9 to `1e-10` on the Franka FR3, UR5e, and SO-ARM101 URDFs. On a 7-DoF Franka model, the throughput target is > 6 M RNEA evaluations / second / core on x86, within 1.4× of Pinocchio's hand-tuned implementation.
 
-This sentence is the contract. Every milestone below ladders up to one of its clauses.
+These criteria are the contract. Every milestone below ladders up to one of its clauses.
 
 **Current status (v0.1.0) — honest accounting of the contract:**
 
@@ -44,15 +44,15 @@ labelled as such anywhere it appears publicly until it is actually measured.
 | Audience              | What they're looking for                                                             | Where we serve them                       |
 | --------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------- |
 | Senior C++ reviewer   | Clean code, CI green, benchmarks, Pinocchio parity                                   | `/include`, `/src`, `/tests`, `/benchmarks`, `README` |
-| Hiring manager        | The resume metric in §2 verified at a glance                                          | `README`, `docs/BENCHMARKS.md`, `docs/PINOCCHIO_PARITY.md` |
-| Total beginner        | A guided tour from "what is a robot" to "I just wrote a Jacobian"                     | `/course`                                 |
+| Hiring manager        | The success criteria in §2 verified at a glance                                       | `README`, `docs/BENCHMARKS.md`, `docs/PINOCCHIO_PARITY.md` |
+| Engineer new to robotics | A guided path from spatial algebra to differentiable IK, grounded in the source   | `/course`                                 |
 | Curious open-source contributor | Issues, contribution guide, small first-issue tags                            | `docs/DEVELOPMENT.md`, GitHub Issues       |
 
 ## 4. Phase plan (12 months @ ~10–15 hrs/week)
 
 Each phase has: **duration**, **deliverables**, **acceptance criteria**, **library work**, **course work**, **risks**.
 
-If you (Claude Code) finish a phase early, do not skip ahead — instead, harden tests, add benchmarks, or polish the course chapter. Quality > speed.
+When a phase finishes early, the rule is not to skip ahead but to harden tests, add benchmarks, or polish the corresponding course chapter. Quality takes priority over speed.
 
 ---
 
@@ -362,7 +362,7 @@ If you (Claude Code) finish a phase early, do not skip ahead — instead, harden
 ### Phase 10 — Release & marketing (Weeks 46–52)
 
 - Cut **v0.1.0**.
-- README polish: badges, GIF / SVG of a robot moving (rendered offline, committed as static), the resume metric prominently.
+- README polish: badges, GIF / SVG of a robot moving (rendered offline, committed as static), the headline metrics prominently.
 - Blog post (~2000 words): "I re-implemented Pinocchio in 5K lines of C++20 to learn rigid-body dynamics."
 - Submit PR to [`awesome-robotics-libraries`](https://github.com/jslee02/awesome-robotics-libraries).
 - Deploy `course/` site to GitHub Pages with a custom subdomain if available.
@@ -414,9 +414,9 @@ For chapters 00–02 (welcome, C++ foundations, linear algebra), we **link out**
 - **Path planning** — out of scope.
 - **Simulation** — no integrator, no contact solver.
 - **Mesh visualisation** — we read mesh paths from URDFs but don't load meshes.
-- **ROS integration** — explicitly forbidden (see `CLAUDE.md` §8).
+- **ROS integration** — out of scope; the library stays free of ROS and Boost dependencies by design.
 
-If the maintainer requests any of these, push back and propose a follow-up project instead.
+Requests for any of these should be deferred to a follow-up project rather than folded into this one.
 
 ## 9. Open questions for the maintainer to decide later
 

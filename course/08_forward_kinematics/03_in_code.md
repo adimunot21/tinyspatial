@@ -24,8 +24,7 @@ Eleven lines. Read each one against chapter 06–07.
 ## Why each piece is the way it is
 
 - **`const Eigen::Ref<const VectorX>& q`** — Eigen's reference type. Accepts
-  `VectorX`, a slice of one, or a `Map` of a raw buffer, without copying
-  (CLAUDE.md §7 idiom).
+  `VectorX`, a slice of one, or a `Map` of a raw buffer, without copying.
 - **`q_slice = q.segment(idx_q[i], joint_nq)`** — pulls out just this joint's
   configuration coordinates. For a revolute joint that's 1 number; for a
   floating joint, 7.

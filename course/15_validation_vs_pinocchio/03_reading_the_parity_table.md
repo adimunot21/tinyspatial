@@ -45,7 +45,7 @@ at 1e-15.
 | `< 1e-15`    | Identical up to floating-point order of operations.    |
 | `1e-14 … 1e-12` | Identical up to FP catastrophic-cancellation noise.|
 | `1e-11 … 1e-10` | Suspicious. Probably accumulated round-off in a deep chain. |
-| `> 1e-10`    | **Failure.** This is the tolerance bar (CLAUDE.md §11). |
+| `> 1e-10`    | **Failure.** This is the tolerance bar. |
 
 The reason `1e-15` is the floor: doubles have ~16 significant decimal
 digits. Two algorithms that compute the same answer through *different*

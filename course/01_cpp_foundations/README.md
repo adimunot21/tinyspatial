@@ -61,7 +61,7 @@ to this codebase that might surprise you:
 1. **Eigen idioms.** We pass matrices by `const Eigen::Ref<const MatT>&`
    for inputs and `Eigen::Ref<MatT>` for outputs. This accepts any Eigen
    expression with the right shape (a slice, a column block, a `Map`)
-   without copying. CLAUDE.md §7 has the full rationale.
+   without copying.
 
 2. **`std::expected` instead of exceptions.** Public APIs that can fail
    return `std::expected<T, Error>`. Exceptions are reserved for
