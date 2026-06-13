@@ -116,7 +116,7 @@ double the per-iteration FK count.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | The Lie-tangent error | [`dls.hpp:74-77`](../../include/tinyspatial/ik/dls.hpp#L74-L77) |
-> | The iterative loop | [`dls.hpp:73-91`](../../include/tinyspatial/ik/dls.hpp#L73-L91) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | The Lie-tangent error | [`dls.hpp`](../../include/tinyspatial/ik/dls.hpp) · `solve_ik_dls` (the `log()` residual) |
+> | The iterative loop | `dls.hpp` · `solve_ik_dls` |

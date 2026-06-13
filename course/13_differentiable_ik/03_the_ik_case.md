@@ -194,7 +194,7 @@ implicit method is 10–100× faster.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | The formula | [`differentiable.hpp:62-66`](../../include/tinyspatial/ik/differentiable.hpp#L62-L66) |
-> | The FD test | [`test_differentiable.cpp:30-84`](../../tests/unit/ik/test_differentiable.cpp#L30-L84) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | The formula | [`differentiable.hpp`](../../include/tinyspatial/ik/differentiable.hpp) · `ik_implicit_derivative` |
+> | The FD test | [`test_differentiable.cpp`](../../tests/unit/ik/test_differentiable.cpp) |

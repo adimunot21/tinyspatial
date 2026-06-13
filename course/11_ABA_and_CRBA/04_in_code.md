@@ -183,10 +183,9 @@ the kind of thing a physics step would do at the first tick.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | Function signature | [`aba.hpp:56-60`](../../include/tinyspatial/algo/aba.hpp#L56-L60) |
-> | Scratch allocations | [`aba.hpp:66-72`](../../include/tinyspatial/algo/aba.hpp#L66-L72) |
-> | Pass 1 | [`aba.hpp:74-93`](../../include/tinyspatial/algo/aba.hpp#L74-L93) |
-> | Pass 2 | [`aba.hpp:95-123`](../../include/tinyspatial/algo/aba.hpp#L95-L123) |
-> | Pass 3 | [`aba.hpp:125-146`](../../include/tinyspatial/algo/aba.hpp#L125-L146) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | Function signature | [`aba.hpp`](../../include/tinyspatial/algo/aba.hpp) · `aba` |
+> | Pass 1 (outward kinematics + bias) | `aba.hpp` · the first `for (int i = 0; …)` loop |
+> | Pass 2 (articulated-inertia reduction) | `aba.hpp` · the `for (int i = njoints-1; …)` loop |
+> | Pass 3 (acceleration propagation) | `aba.hpp` · the final `for (int i = 0; …)` loop |

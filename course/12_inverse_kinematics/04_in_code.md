@@ -136,8 +136,8 @@ That's it. Five-line setup, one-call IK.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | `DlsOptions` | [`dls.hpp:39-49`](../../include/tinyspatial/ik/dls.hpp#L39-L49) |
-> | `IkResult` | [`dls.hpp:52-62`](../../include/tinyspatial/ik/dls.hpp#L52-L62) |
-> | Iteration loop | [`dls.hpp:70-94`](../../include/tinyspatial/ik/dls.hpp#L70-L94) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | `DlsOptions` | [`dls.hpp`](../../include/tinyspatial/ik/dls.hpp) · `DlsOptions` |
+> | `IkResult` | `dls.hpp` · `IkResult` |
+> | Iteration loop | `dls.hpp` · `solve_ik_dls` |

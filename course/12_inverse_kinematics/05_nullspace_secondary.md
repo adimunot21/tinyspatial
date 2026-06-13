@@ -167,8 +167,7 @@ concrete use case appears.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | `NullspaceOptions` | [`nullspace.hpp:42-58`](../../include/tinyspatial/ik/nullspace.hpp#L42-L58) |
-> | Two-tier damping | [`nullspace.hpp:79-87`](../../include/tinyspatial/ik/nullspace.hpp#L79-L87) |
-> | Projector step | [`nullspace.hpp:89-95`](../../include/tinyspatial/ik/nullspace.hpp#L89-L95) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | `NullspaceOptions` | [`nullspace.hpp`](../../include/tinyspatial/ik/nullspace.hpp) · `NullspaceOptions` |
+> | Two-tier damping, projector step | `nullspace.hpp` · `solve_ik_nullspace` |

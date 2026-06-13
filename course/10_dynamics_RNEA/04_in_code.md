@@ -28,6 +28,12 @@ Outputs:
   and net wrenches, filled as a side effect. The next algorithm (CRBA, ABA)
   can reuse them.
 
+The snippets below are shown through the `double` API for readability. In the
+source the function is templated — `template <typename S> void rnea(const
+ModelT<S>&, DataT<S>&, …)` — so the identical code runs on the autodiff scalar
+`Jet` and yields `∂τ/∂q`, `∂τ/∂v`, and `∂τ/∂a` directly (Chapter 13). Read `Model`
+for `ModelT<S>`, `Motion` for `MotionT<S>`, and so on.
+
 `Eigen::Ref` lets the caller pass any Eigen expression with the right
 shape — a slice, a column of a bigger matrix, etc. — without copying.
 The `const Ref<const>` form is the read-only variant: a zero-copy view the
@@ -161,9 +167,9 @@ This is the same call made by `test_rnea.cpp:HandComputedGravityCompensation`.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | Function signature | [`rnea.hpp:90-92`](../../include/tinyspatial/algo/rnea.hpp#L90-L92) |
-> | Outward pass | [`rnea.hpp:99-122`](../../include/tinyspatial/algo/rnea.hpp#L99-L122) |
-> | Inward pass | [`rnea.hpp:125-134`](../../include/tinyspatial/algo/rnea.hpp#L125-L134) |
-> | Joint dispatch helpers | [`rnea.hpp:43-81`](../../include/tinyspatial/algo/rnea.hpp#L43-L81) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | Function signature | [`rnea.hpp`](../../include/tinyspatial/algo/rnea.hpp) · `rnea` |
+> | Outward pass | `rnea.hpp` · the `for (int i = 0; …)` loop |
+> | Inward pass | `rnea.hpp` · the `for (int i = njoints()-1; …)` loop |
+> | Joint dispatch helpers | `rnea.hpp` · `detail::joint_subspace_motion`, `detail::joint_subspace_project` |

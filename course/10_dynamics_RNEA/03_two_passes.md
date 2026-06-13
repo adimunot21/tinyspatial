@@ -134,8 +134,8 @@ the first time you have both algorithms.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | Outward pass | [`rnea.hpp:99-122`](../../include/tinyspatial/algo/rnea.hpp#L99-L122) |
-> | Inward pass | [`rnea.hpp:125-134`](../../include/tinyspatial/algo/rnea.hpp#L125-L134) |
-> | Subspace project (per joint type) | [`rnea.hpp:63-81`](../../include/tinyspatial/algo/rnea.hpp#L63-L81) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | Outward pass | [`rnea.hpp`](../../include/tinyspatial/algo/rnea.hpp) · the `for (int i = 0; …)` loop |
+> | Inward pass | `rnea.hpp` · the `for (int i = njoints()-1; …)` loop |
+> | Subspace project (per joint type) | `rnea.hpp` · `detail::joint_subspace_project` |
