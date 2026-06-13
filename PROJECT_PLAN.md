@@ -25,6 +25,20 @@ A header-mostly C++20 library that re-implements the core rigid-body kinematics 
 
 This sentence is the contract. Every milestone below ladders up to one of its clauses.
 
+**Current status (v0.1.0) — honest accounting of the contract:**
+
+| Clause | Status |
+| ------ | ------ |
+| Pinocchio 3.9 parity to `1e-10` (RNEA/ABA/CRBA + FK/Jacobian/derivatives) | ✅ met — measured at `1e-13`–`1e-15`, see `docs/PINOCCHIO_PARITY.md` |
+| ~1.6 K LoC of unit tests | ✅ met |
+| Full-build CI green | ✅ met (matrix in `.github/workflows/ci.yml`) |
+| CI < 90 s | ⚠️ holds for the fast matrix; the Pinocchio cross-check runs in a separate `validation.yml` outside that budget |
+| ≥ 6 M RNEA / s / core, within 1.4× of Pinocchio | ❌ **not yet met** — currently **~390 K/s, ~1.6×** of Pinocchio C++ on Franka (`docs/BENCHMARKS.md`). Treated as a stretch target; the planned fixed-size / compile-time (`Scalar`-generic) work is the path to closing it. |
+| ≥ 250 GitHub stars | ⏳ post-launch metric |
+
+The `≥ 6 M/s` figure is an **aspiration**, not a delivered number. Keep it
+labelled as such anywhere it appears publicly until it is actually measured.
+
 ## 3. Audience model
 
 | Audience              | What they're looking for                                                             | Where we serve them                       |

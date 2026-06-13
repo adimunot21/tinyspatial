@@ -2,6 +2,10 @@
 # Triggers on every push to main (so the live site tracks main automatically)
 # and can be re-run manually via the Actions UI.
 #
+# The site also ships a live WebAssembly widget (the interactive demo), so this
+# workflow compiles the WASM module with Emscripten and drops it, plus the demo
+# pages, into the built site under assets/wasm-demo/. Chapter 17 embeds it.
+#
 # One-time setup (repo settings, not handled by this workflow):
 #   Settings → Pages → Source: "GitHub Actions"
 name: docs
@@ -12,6 +16,11 @@ on:
     paths:
       - 'course/**'
       - 'mkdocs.yml'
+      - 'web/**'
+      - 'src/web/**'
+      - 'include/**'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -29,10 +38,17 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
+      - name: Checkout (with submodules)
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential cmake
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -40,11 +56,31 @@ jobs:
           python-version: '3.12'
 
       - name: Install mkdocs
+        run: pip install 'mkdocs' 'mkdocs-material' 'pymdown-extensions'
+
+      - name: Install Emscripten (pinned)
         run: |
-          pip install 'mkdocs' 'mkdocs-material' 'pymdown-extensions'
+          git clone --depth 1 --branch 3.1.61 https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install 3.1.61
+          ./emsdk activate 3.1.61
+
+      - name: Build the WASM module
+        run: |
+          source emsdk/emsdk_env.sh
+          cmake --preset=wasm
+          cmake --build build/wasm -j
 
       - name: Build site
         run: mkdocs build --strict
+
+      - name: Bundle the live WASM demo into the site
+        run: |
+          dest=build/course_site/assets/wasm-demo
+          mkdir -p "$dest"
+          cp web/demo/*.html web/demo/*.js "$dest"/
+          cp build/wasm/tinyspatial.js build/wasm/tinyspatial.wasm "$dest"/
+          ls -lh "$dest"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

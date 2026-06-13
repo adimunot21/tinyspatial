@@ -54,9 +54,26 @@ namespace tinyspatial {
 ///
 /// \pre `q.size() == model.nq()`, `v.size() == tau.size() == qdd.size() == model.nv()`.
 /// `data` is sized to `model.njoints()`. `gravity` is in the world frame.
-inline void aba(const Model& model, Data& data, const Eigen::Ref<const VectorX>& q,
-                const Eigen::Ref<const VectorX>& v, const Eigen::Ref<const VectorX>& tau,
-                Eigen::Ref<VectorX> qdd, const Vector3& gravity = Vector3(0, 0, -9.81)) {
+///
+/// Templated on the scalar: on a `model_cast<Jet>` model with a seeded `tau`,
+/// the autodiff partials give `∂q̈/∂τ`, which equals `M(q)⁻¹` (cross-checked
+/// against CRBA in `tests/unit/diff/test_dynamics_ad.cpp`).
+template <typename S>
+void aba(const ModelT<S>& model, DataT<S>& data,
+         const Eigen::Ref<const typename Types<S>::VectorX>& q,
+         const Eigen::Ref<const typename Types<S>::VectorX>& v,
+         const Eigen::Ref<const typename Types<S>::VectorX>& tau,
+         Eigen::Ref<typename Types<S>::VectorX> qdd,
+         const typename Types<S>::Vector3& gravity = typename Types<S>::Vector3(0, 0, -9.81)) {
+  using Motion = MotionT<S>;
+  using Force = ForceT<S>;
+  using SE3 = SE3T<S>;
+  using Vector3 = typename Types<S>::Vector3;
+  using Vector6 = typename Types<S>::Vector6;
+  using Matrix6 = typename Types<S>::Matrix6;
+  using Matrix6X = typename Types<S>::Matrix6X;
+  using VectorX = typename Types<S>::VectorX;
+
   forward_kinematics(model, data, q);
 
   const int njoints = model.njoints();
@@ -66,15 +83,15 @@ inline void aba(const Model& model, Data& data, const Eigen::Ref<const VectorX>&
   std::vector<Matrix6> i_a(njoints);
   std::vector<Vector6> p_a(njoints);
   std::vector<Motion> c(njoints);
-  std::vector<Eigen::Matrix<Scalar, 6, Eigen::Dynamic>> u_mat(njoints);
-  std::vector<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> d_inv(njoints);
+  std::vector<Eigen::Matrix<S, 6, Eigen::Dynamic>> u_mat(njoints);
+  std::vector<Eigen::Matrix<S, Eigen::Dynamic, Eigen::Dynamic>> d_inv(njoints);
   std::vector<VectorX> u_vec(njoints);
 
   // ---- Pass 1: outward. Fill v[i], c[i], IA[i], pA[i].
   for (int i = 0; i < njoints; ++i) {
-    const Joint& j = model.joints[i];
+    const JointT<S>& j = model.joints[i];
     const int joint_nv = nv(j);
-    const Motion v_j = detail::joint_subspace_motion(j, v.segment(model.idx_v[i], joint_nv));
+    const Motion v_j = detail::joint_subspace_motion<S>(j, v.segment(model.idx_v[i], joint_nv));
     const SE3 i_from_parent = data.pose_in_parent[i].inverse();
 
     if (model.parent[i] == -1) {
@@ -93,7 +110,7 @@ inline void aba(const Model& model, Data& data, const Eigen::Ref<const VectorX>&
 
   // ---- Pass 2: inward. Accumulate articulated inertia / bias at each parent.
   for (int i = njoints - 1; i >= 0; --i) {
-    const Joint& j = model.joints[i];
+    const JointT<S>& j = model.joints[i];
     const int joint_nv = nv(j);
     const Matrix6X& s_i = model.motion_subspace[i];
 
@@ -102,7 +119,7 @@ inline void aba(const Model& model, Data& data, const Eigen::Ref<const VectorX>&
 
     if (joint_nv > 0) {
       u_mat[i] = i_a[i] * s_i;
-      const Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> d = s_i.transpose() * u_mat[i];
+      const Eigen::Matrix<S, Eigen::Dynamic, Eigen::Dynamic> d = s_i.transpose() * u_mat[i];
       d_inv[i] = d.inverse();
       u_vec[i] = tau.segment(model.idx_v[i], joint_nv) - s_i.transpose() * p_a[i];
       // Reduce articulated quantities through the joint.
@@ -126,7 +143,7 @@ inline void aba(const Model& model, Data& data, const Eigen::Ref<const VectorX>&
   // ---- Pass 3: outward. Solve for q̈ at each joint and propagate `a[i]`.
   const Motion neg_gravity_world(Vector3::Zero(), -gravity);
   for (int i = 0; i < njoints; ++i) {
-    const Joint& j = model.joints[i];
+    const JointT<S>& j = model.joints[i];
     const int joint_nv = nv(j);
     const Matrix6X& s_i = model.motion_subspace[i];
     const SE3 i_from_parent = data.pose_in_parent[i].inverse();

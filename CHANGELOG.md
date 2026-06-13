@@ -8,6 +8,155 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **WebAssembly build foundation (Phase 3, the interactive course).** The
+  library now compiles to WASM so the course can run real `tinyspatial` in the
+  browser. `src/web/bindings_wasm.cpp` is an embind glue exposing a `Robot`
+  class (construct from a URDF *string* — the browser has no filesystem — then
+  `jointPositions(q)` returns every joint frame's world origin). A
+  `cmake --preset=wasm` (Emscripten toolchain) builds `tinyspatial.js` +
+  `tinyspatial.wasm`; the new `.github/workflows/wasm.yml` installs emsdk and
+  compiles it (the verification gate, since the WASM toolchain isn't part of the
+  native build). The header-mostly, no-Boost/no-ROS dependency discipline is
+  what keeps the bundle small. The native build is unchanged (the target is
+  guarded by `if(EMSCRIPTEN AND TINYSPATIAL_BUILD_WASM)`). *Verified green in
+  CI* — the `wasm` workflow builds the module on GitHub's runners.
+- **Interactive browser demo + course chapter 17.** [`web/demo/`](web/demo/) is a
+  dependency-free page (`index.html` + `app.js`) that loads the WASM module,
+  builds a 2-link arm from a URDF string, and redraws it live from the joint
+  positions `forward_kinematics` returns as you drag two sliders — no JavaScript
+  reimplementation of the math, it's the compiled C++. Course chapter
+  [17 "Interactive: the library in your browser"](course/17_interactive_wasm/README.md)
+  explains WASM/embind and the build, and [`web/README.md`](web/README.md) covers
+  building + serving it. The demo's robot definition and FK output were verified
+  against the native library.
+- **Drag-to-reach IK widget.** `Robot.solveIkPosition(linkId, tx, ty, tz, qInit)`
+  added to the WASM binding — a position-only damped-least-squares solve (the
+  Jacobian's linear rows) returning `{ q, converged, iterations }`.
+  [`web/demo/ik.html`](web/demo/ik.html) (`ik.js`) lets you drag a target and the
+  compiled C++ solver puts the arm's tip on your cursor, warm-started each move.
+  The solve was verified against the native library (converges in ~6 iterations,
+  reaches the target exactly); the binding compile is re-checked by the `wasm`
+  CI workflow.
+- **The live widget ships on the course site.** `docs.yml` now compiles the WASM
+  module with Emscripten, runs mkdocs, and bundles the demo pages +
+  `tinyspatial.{js,wasm}` into the built site under `assets/wasm-demo/`. Course
+  chapter 17 embeds the IK demo via an `<iframe>`, so the deployed GitHub Pages
+  site runs the real C++ solver in the reader's browser. (The deploy path runs
+  only on `main`.)
+
+- **Differentiable-first groundwork (Phase 2, P2.0) — the `Scalar`-generic seam
+  + a forward-mode autodiff scalar.** The goal: run FK / Jacobian / RNEA on a
+  header-only dual type and get exact gradients, no CppAD / Python / JAX.
+  - `core/types.hpp` now exposes the whole algebra templated on the scalar via
+    `Types<S>`, while keeping the exact concrete `double` aliases every header
+    uses (`Types<double>::Vector3` is the old `Eigen::Matrix<Scalar,3,1>`), so
+    nothing downstream changes and the library compiles bit-identically.
+  - `core/jet.hpp` — `Jet<N>`, a forward-mode dual number (value + `N`-vector of
+    partials) with operator overloads, ADL math functions
+    (`sqrt`/`sin`/`cos`/`asin`/`atan2`/`abs`/`pow`/`min`/`max`/…), an
+    `Eigen::NumTraits<Jet<N>>` specialisation, and `ScalarBinaryOpTraits` for
+    mixing with `double`. Design follows Ceres' `Jet`; ~330 lines, zero new
+    dependencies.
+  - `tests/unit/core/test_jet.cpp` — the **proof-of-concept gate**: arithmetic
+    and transcendental derivatives against closed forms, `Eigen::Matrix<Jet>`
+    products, and the riskiest interop — `Eigen::Quaternion<Jet>` through
+    `normalize()` + `toRotationMatrix()` with `dR/dθ` checked against the
+    analytic rotation derivative to 1e-10. Passing this gate means templating the
+    algorithms on the scalar is mechanical.
+  - **P2.1 — the Lie-group core is now Scalar-generic.** `liegroup/so3.hpp` and
+    `liegroup/se3.hpp` are templated as `SO3T<S>` / `SE3T<S>` with
+    `SO3 = SO3T<double>` / `SE3 = SE3T<double>`, so the whole library and its
+    152 tests still build on `double` unchanged. These two files hold every
+    transcendental (`sqrt`/`asin`/`sin`/`cos`/min-clamp + the quaternion sign
+    branch); they now call math through `using std::fn; fn(x)` so ADL resolves
+    the `Jet` overload, and every branch predicate compares the scalar value
+    only. `skew`/`unskew` deduce their scalar from the argument. (Also factored
+    the duplicated SO(3) Jacobian coefficient branches into `ab_coeffs`/`c_coeff`
+    helpers — no behavioural change.)
+  - `tests/unit/liegroup/test_liegroup_ad.cpp` — instantiates the groups on
+    `Jet` and validates the autodiff against analytic truths: `log(exp(ω))` and
+    `log(exp(ξ))` Jacobians equal the identity (I₃, I₆), and
+    `d(R·p)/dω|₀ = -[p]_×` exercises the small-angle branch.
+  - **P2.2 — spatial value types + model are Scalar-generic.**
+    `spatial/{motion,force,inertia}.hpp` and `model/{joint,model}.hpp` are now
+    templated (`MotionT<S>`, `ForceT<S>`, `SpatialInertiaT<S>`, `JointRevoluteT<S>`
+    …, `ModelT<S>`, `DataT<S>`) with the `double` aliases every consumer uses
+    kept intact — the whole library (RNEA/CRBA/ABA/IK/URDF/bindings) builds
+    unchanged. Added `cast<S2>()` on `SO3T`/`SE3T`/`SpatialInertiaT`/the joint
+    variants, plus `model_cast<S2>()`, to lift a URDF-loaded `double` model into
+    an autodiff scalar with zero-derivative constants. (`spatial/cross.hpp` and
+    `plucker.hpp` stay `double` — not on the FK path; they templatize with RNEA.)
+  - **P2.3 — forward kinematics is differentiable, validated against the
+    analytical oracle.** `algo/forward_kinematics.hpp` is templated on the
+    scalar. New `tests/unit/diff/test_fk_ad.cpp` lifts the Franka and UR5e models
+    with `model_cast<Jet<nv>>`, seeds `q` as autodiff variables, runs the SAME
+    `forward_kinematics`, recovers the body-frame Jacobian from each pose's Jet
+    partials (`vee(oMiᵀ ∂oMi/∂q_k)`), and asserts it matches
+    `compute_joint_jacobians` (`diff/fk_derivatives.hpp`) to **1e-10**. Two
+    independently-derived derivative paths agreeing to machine precision — the
+    correctness story of the differentiable-first bet. 154/154 tests green.
+  - **P2.4 — inverse dynamics (RNEA) is differentiable, triple-validated.**
+    `spatial/cross.hpp` and `algo/rnea.hpp` are templated on the scalar
+    (`cross_motion`/`cross_force` deduce their scalar; the typed `cross(...)` and
+    `rnea(...)` are scalar-generic). New `tests/unit/diff/test_rnea_ad.cpp` seeds
+    `q`/`v`/`a` as autodiff variables and checks AD `∂τ/∂q`, `∂τ/∂v`, `∂τ/∂a`
+    against `diff/rnea_derivatives.hpp` (Carpentier–Mansard recursion) **and**
+    AD `∂τ/∂a` against CRBA's `M(q)` to ~1e-9 on Franka and UR5e — three
+    independently-derived paths in agreement. 156/156 tests green; double path
+    unchanged.
+  - **P2.5 — CRBA and ABA are differentiable; the algorithm suite is complete.**
+    `spatial/plucker.hpp`, `algo/crba.hpp`, and `algo/aba.hpp` are templated on
+    the scalar. New `tests/unit/diff/test_dynamics_ad.cpp`: CRBA on `Jet`
+    reproduces the `double` mass matrix, and ABA — seeded on `τ` — yields
+    `∂q̈/∂τ`, which is checked against `M(q)⁻¹` (CRBA inverse) to 1e-8. This
+    closes the dynamics loop through autodiff: RNEA gives `M = ∂τ/∂a`, ABA gives
+    `M⁻¹ = ∂q̈/∂τ`. Every kinematics/dynamics algorithm (FK, Jacobian, RNEA,
+    CRBA, ABA) now runs differentiably in pure C++ with no external autodiff
+    dependency. 158/158 tests green; double path unchanged.
+  - **Differentiable-first, surfaced (dual-track close-out).** A runnable example
+    [`src/examples/differentiable_dynamics.cpp`](src/examples/differentiable_dynamics.cpp)
+    shows the full pattern — `model_cast<Jet>`, seed `q`, read `∂(ee)/∂q` and
+    `∂g/∂q` straight out of FK and RNEA. Course chapter
+    [13.5 "Differentiable everything: the Jet approach"](course/13_differentiable_ik/05_differentiable_dynamics.md)
+    gives the capability a home (CLAUDE.md §3), and the README gains a
+    "Differentiable in pure C++" section.
+
+### Added
+
+- **`validation.yml` workflow — Pinocchio parity in CI (CLAUDE.md §10/§11).**
+  - Runs the `tests/validation/test_kinematics.py` cross-check on PRs that touch
+    `include/`, `src/`, or `tests/validation/`, plus a nightly schedule and
+    manual dispatch. Uses a pip venv with the pinned `pin==3.9.0` cmeel wheels
+    (no conda in CI), builds the nanobind binding, runs
+    `ctest --preset=validation -L pinocchio_parity`, and upserts the regenerated
+    parity table as a sticky PR comment. Closes the gap where the parity table
+    was hand-committed and never CI-verified.
+- **`docs/ARCHITECTURE.md`** — structural overview for reviewers (header-mostly
+  rationale, Model/Data split, convention table, the dependency boundary,
+  build-target map). Referenced by the README but previously missing.
+- **`docs/DEVELOPMENT.md`** — contributor guide (build/test/validate commands,
+  style, the dual-track rule, the add-an-algorithm flow, git/PR conventions).
+  Referenced by the README but previously missing.
+
+### Changed
+
+- **`ci.yml` expanded from the Phase-0 single job to the CLAUDE.md §10 matrix:**
+  `ubuntu-22.04/gcc-12` and `ubuntu-24.04/clang-17`, each in Debug (ASan+UBSan)
+  and Release. Added a `lint` job: `clang-format` (gating) + `clang-tidy`
+  (advisory, per CLAUDE.md §7). Release configs skip benchmarks to protect the
+  time budget; the slow Pinocchio cross-check stays in `validation.yml`.
+- **Honest performance accounting.** The README and `PROJECT_PLAN.md` §2 now
+  state plainly that the `≥ 6 M RNEA/s, within 1.4×` figure is an *aspiration*,
+  not a delivered number — current measured standing is **~390 K/s, ~1.6×** of
+  Pinocchio C++ — and that the Pinocchio comparison column is an estimate
+  pending a measured C++ head-to-head. No claim now reads as achieved when it
+  is not.
+- **Documented the IK `std::expected` exception** in `CLAUDE.md` §7 and
+  `docs/ARCHITECTURE.md`: iterative best-effort solvers return a result struct
+  with a `converged` flag by design.
+
+### Added
+
 - **GitHub Pages deploy for the course site.**
   - `.github/workflows/docs.yml` builds `mkdocs` and deploys to
     `https://adimunot21.github.io/tinyspatial/` on every push to main

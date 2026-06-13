@@ -1,0 +1,74 @@
+# Compiles the library to WebAssembly with Emscripten — the browser edge used
+# by the interactive course. Kept in its own workflow (Emscripten install is
+# heavy) so it never enters the fast CI budget. This is also the verification
+# gate for the embind glue, since the WASM toolchain isn't part of the native
+# build.
+name: wasm
+
+on:
+  push:
+    paths:
+      - 'include/**'
+      - 'src/web/**'
+      - 'src/urdf/**'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'third_party/**'
+      - '.github/workflows/wasm.yml'
+  pull_request:
+    paths:
+      - 'include/**'
+      - 'src/web/**'
+      - 'src/urdf/**'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - '.github/workflows/wasm.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: wasm-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: emscripten build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build python3
+
+      - name: Install Emscripten (pinned)
+        run: |
+          git clone --depth 1 --branch 3.1.61 https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install 3.1.61
+          ./emsdk activate 3.1.61
+
+      - name: Configure + build the WASM module
+        run: |
+          source emsdk/emsdk_env.sh
+          cmake --preset=wasm
+          cmake --build build/wasm -j
+
+      - name: Confirm artifacts exist
+        run: |
+          echo "Built WebAssembly artifacts:"
+          find build/wasm -maxdepth 1 \( -name 'tinyspatial.js' -o -name 'tinyspatial.wasm' \) -print -exec ls -lh {} \;
+          test -f build/wasm/tinyspatial.js
+          test -f build/wasm/tinyspatial.wasm
+
+      - name: Upload the WASM bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: tinyspatial-wasm
+          path: |
+            build/wasm/tinyspatial.js
+            build/wasm/tinyspatial.wasm
+          if-no-files-found: error

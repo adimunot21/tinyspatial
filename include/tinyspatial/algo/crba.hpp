@@ -50,8 +50,16 @@ namespace tinyspatial {
 ///
 /// \pre `q.size() == model.nq()`. `M` is `model.nv() × model.nv()`.
 /// `data` is sized to `model.njoints()`.
-inline void crba(const Model& model, Data& data, const Eigen::Ref<const VectorX>& q,
-                 Eigen::Ref<MatrixX> m_out) {
+///
+/// Templated on the scalar: differentiating `M(q)` w.r.t. `q` is available by
+/// running on a `model_cast<Jet>` model.
+template <typename S>
+void crba(const ModelT<S>& model, DataT<S>& data,
+          const Eigen::Ref<const typename Types<S>::VectorX>& q,
+          Eigen::Ref<typename Types<S>::MatrixX> m_out) {
+  using SpatialInertia = SpatialInertiaT<S>;
+  using Matrix6X = typename Types<S>::Matrix6X;
+
   forward_kinematics(model, data, q);
 
   const int njoints = model.njoints();

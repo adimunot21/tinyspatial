@@ -11,6 +11,11 @@
 /// Joints are listed in topological order: `parent[i] < i` for every `i`, with
 /// root joints having `parent[i] == -1`. We do not include a "universe" joint;
 /// the world frame is the implicit parent of root joints.
+///
+/// `Model`/`Data` are templated on the scalar (`ModelT<S>` / `DataT<S>`) with
+/// `Model = ModelT<double>` / `Data = DataT<double>`. The URDF loader builds the
+/// `double` model; `model_cast<S>()` lifts it to an autodiff scalar so the same
+/// algorithms can be differentiated w.r.t. `q`.
 #ifndef TINYSPATIAL_MODEL_MODEL_HPP
 #define TINYSPATIAL_MODEL_MODEL_HPP
 
@@ -30,8 +35,14 @@ namespace tinyspatial {
 
 /// A kinematic tree. Construct it incrementally with `add_joint()`; algorithms
 /// then read it as a constant lookup table.
-class Model {
+template <typename S>
+class ModelT {
  public:
+  using SE3 = SE3T<S>;
+  using SpatialInertia = SpatialInertiaT<S>;
+  using Joint = JointT<S>;
+  using Matrix6X = typename Types<S>::Matrix6X;
+
   std::string name;
 
   std::vector<std::string> joint_names;
@@ -98,13 +109,21 @@ class Model {
   int nv_ = 0;
 };
 
+/// The double-precision model the URDF loader and public API build.
+using Model = ModelT<double>;
+
 /// Per-configuration scratchpad. Sized to match a Model at construction time;
 /// later filled in by algorithms (forward kinematics in Phase 4, RNEA in
 /// Phase 5, …).
-class Data {
+template <typename S>
+class DataT {
  public:
+  using SE3 = SE3T<S>;
+  using Motion = MotionT<S>;
+  using Force = ForceT<S>;
+
   /// Build buffers sized to `model.njoints()`.
-  explicit Data(const Model& model)
+  explicit DataT(const ModelT<S>& model)
       : pose_in_parent(model.njoints(), SE3::identity()),
         pose_in_world(model.njoints(), SE3::identity()),
         v(model.njoints()),
@@ -125,6 +144,25 @@ class Data {
   /// External / joint force on body i in its own frame.
   std::vector<Force> f;
 };
+
+/// The double-precision scratchpad.
+using Data = DataT<double>;
+
+/// Lift a double-precision model to another scalar type, with every constant
+/// (placements, joint axes, inertias) carried as a zero-derivative value. The
+/// returned `ModelT<S2>` can be fed to the (templated) algorithms together with
+/// a `q` seeded as autodiff variables to differentiate them — see
+/// `tests/unit/diff/test_fk_ad.cpp`.
+template <typename S2>
+[[nodiscard]] ModelT<S2> model_cast(const Model& m) {
+  ModelT<S2> out;
+  out.name = m.name;
+  for (int i = 0; i < m.njoints(); ++i) {
+    out.add_joint(m.joint_names[i], m.link_names[i], m.parent[i], joint_cast<S2>(m.joints[i]),
+                  m.placement[i].template cast<S2>(), m.inertia[i].template cast<S2>());
+  }
+  return out;
+}
 
 }  // namespace tinyspatial
 

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tinyspatial — drag-to-reach inverse kinematics</title>
+    <style>
+      :root {
+        --ink: #1b1f24;
+        --accent: #2d6cdf;
+        --target: #e0533d;
+        --muted: #6b7280;
+      }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--ink);
+        max-width: 720px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.5;
+      }
+      h1 { font-size: 1.4rem; }
+      svg {
+        background: #f7f8fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: crosshair;
+        touch-action: none;
+      }
+      .arm-link {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .joint-dot { fill: var(--ink); }
+      .target-dot {
+        fill: none;
+        stroke: var(--target);
+        stroke-width: 3;
+      }
+      #readout {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        margin-top: 1rem;
+        color: var(--accent);
+      }
+      code { background: #f0f1f3; padding: 0.1rem 0.3rem; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>Inverse kinematics — drag to reach</h1>
+    <p>
+      Click or drag inside the box. The <strong>real C++ damped-least-squares
+      solver</strong> (compiled to WebAssembly) finds joint angles that put the
+      arm's tip on your cursor, warm-started from the current pose — exactly the
+      algorithm in <code>ik/dls.hpp</code>, position-only so a 2-link arm can
+      track a 2-D target. The red ring is your target; the blue arm is the
+      solution.
+    </p>
+
+    <svg id="arm" width="440" height="440" viewBox="0 0 440 440"></svg>
+    <div id="readout">loading WebAssembly module…</div>
+
+    <p style="margin-top: 2rem; color: var(--muted); font-size: 0.85rem">
+      Build the module (<code>cmake --preset=wasm</code>) and copy
+      <code>tinyspatial.js</code> / <code>tinyspatial.wasm</code> next to this
+      file — see <code>web/README.md</code>.
+    </p>
+
+    <script src="tinyspatial.js"></script>
+    <script src="ik.js"></script>
+  </body>
+</html>

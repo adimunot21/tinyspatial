@@ -11,6 +11,10 @@
 /// The Model is topologically ordered (`parent[i] < i`), so a single `for`
 /// from 0 to njoints() suffices — by the time we hit joint `i`, its parent's
 /// world pose is already filled in.
+///
+/// Templated on the scalar: called with a `double` model it is ordinary FK;
+/// called with a `model_cast<Jet>` model and a `q` seeded as autodiff variables
+/// it yields ∂(pose)/∂q exactly (see `tests/unit/diff/test_fk_ad.cpp`).
 #ifndef TINYSPATIAL_ALGO_FORWARD_KINEMATICS_HPP
 #define TINYSPATIAL_ALGO_FORWARD_KINEMATICS_HPP
 
@@ -22,15 +26,18 @@ namespace tinyspatial {
 
 /// Fill `data.pose_in_parent` and `data.pose_in_world` for every joint.
 /// \pre `q.size() == model.nq()`. `data` is sized to `model.njoints()`.
-inline void forward_kinematics(const Model& model, Data& data, const Eigen::Ref<const VectorX>& q) {
+template <typename S>
+void forward_kinematics(const ModelT<S>& model, DataT<S>& data,
+                        const Eigen::Ref<const typename Types<S>::VectorX>& q) {
   for (int i = 0; i < model.njoints(); ++i) {
-    const Joint& j = model.joints[i];
+    const JointT<S>& j = model.joints[i];
     const int joint_nq = nq(j);
     // `q.segment(...)` is a zero-copy Block view; `Ref<const VectorX>` binds
     // to it directly. Using `const VectorX q_slice = ...` here would heap-
     // allocate per joint per FK call, which is the dominant cost on small
     // arms.
-    const SE3 local = model.placement[i] * joint_transform(j, q.segment(model.idx_q[i], joint_nq));
+    const SE3T<S> local =
+        model.placement[i] * joint_transform(j, q.segment(model.idx_q[i], joint_nq));
     data.pose_in_parent[i] = local;
     const int parent_idx = model.parent[i];
     data.pose_in_world[i] = (parent_idx == -1) ? local : data.pose_in_world[parent_idx] * local;
