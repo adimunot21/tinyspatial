@@ -39,7 +39,9 @@ concurrency:
 jobs:
   pinocchio-parity:
     name: Pinocchio 3.9 cross-check
-    runs-on: ubuntu-22.04
+    # ubuntu-24.04: its system tinyxml2 is 10.x (libtinyxml2.so.10), which the
+    # cmeel pinocchio pywrap needs. 22.04 only ships libtinyxml2.so.9.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout (with submodules)
         uses: actions/checkout@v5
@@ -49,7 +51,9 @@ jobs:
       - name: Install toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends build-essential g++-12 cmake
+          # libtinyxml2-10 provides the system libtinyxml2.so.10 that Pinocchio's
+          # cmeel pywrap loads (the cmeel prefix only ships the boost/urdfdom/etc).
+          sudo apt-get install -y --no-install-recommends build-essential cmake libtinyxml2-10
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -66,13 +70,10 @@ jobs:
           .venv/bin/pip install -r tests/validation/requirements.txt
 
       - name: Configure + build the validation binding
-        env:
-          CC: gcc-12
-          CXX: g++-12
         run: |
           # Activate the venv so find_package(Python) resolves to it and
           # nanobind builds _tinyspatial against the same interpreter that
-          # has pinocchio installed.
+          # has pinocchio installed. The runner default compiler is fine here.
           . .venv/bin/activate
           cmake --preset=validation
           cmake --build build/validation -j
