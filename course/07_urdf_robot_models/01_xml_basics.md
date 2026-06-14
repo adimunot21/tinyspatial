@@ -1,9 +1,8 @@
 # XML, in five minutes
 
-If you've never read an XML file: it's text describing a *tree of named
-boxes with labels*. Every box ("element") has a name, optional attributes
-(key-value pairs), and either some text or more boxes nested inside it. The
-syntax is:
+XML is text describing a *tree of named boxes with labels*. Every box
+("element") has a name, optional attributes (key-value pairs), and either some
+text or more boxes nested inside it. The syntax is:
 
 ```xml
 <box-name attribute="value" another="value2">
