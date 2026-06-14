@@ -161,7 +161,7 @@ Always prefer the implicit method.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | The whole function | [`differentiable.hpp:52-66`](../../include/tinyspatial/ik/differentiable.hpp#L52-L66) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | The whole function | [`differentiable.hpp`](../../include/tinyspatial/ik/differentiable.hpp) · `ik_implicit_derivative` |
 > | Tests | [`test_differentiable.cpp`](../../tests/unit/ik/test_differentiable.cpp) |

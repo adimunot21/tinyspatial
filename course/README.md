@@ -1,51 +1,68 @@
 # The tinyspatial course
 
-Welcome. This is a course about how robots *move*, and how a computer figures
-out that movement. It uses a real, working C++ library — the one living in this
-very repository — as its laboratory.
+This is a course on rigid-body kinematics and dynamics — how a robot arm moves,
+and how a computer computes that motion — taught against a real, working C++
+library. The library lives in this repository; the course uses its source as the
+reference implementation, quoting and dissecting the actual code rather than
+pseudocode.
 
-You do **not** need to be a programmer to start. You do **not** need to know
-linear algebra yet. You need curiosity and a willingness to work small examples
-by hand. We'll build the rest together.
+## Prerequisites
 
-## What you'll be able to do by the end
+The course assumes:
 
-- Read and reason about the math that controls a robot arm.
-- Understand rotations, rigid transforms, twists, and wrenches — the vocabulary
-  of robotics — and *why* they're built the way they are.
-- Follow (and modify) real algorithms: forward kinematics, Jacobians, and the
-  Featherstone dynamics algorithms RNEA, ABA, and CRBA.
-- Drive the whole thing from Python and check your answers against the
-  industry-standard library, Pinocchio.
+- **Working C++.** You can read modern C++ (templates, `const` references,
+  `struct`/`class`, the standard containers). The library targets C++20 and uses
+  `concepts`, `constexpr`, and `std::expected`; these are introduced where they
+  appear. You do not need prior template-metaprogramming experience.
+- **Linear-algebra fundamentals.** Matrix multiplication, transpose, inverse,
+  eigenvalues, and the geometric reading of a matrix as a linear map. Chapter 02
+  links to refreshers if needed.
+- **No robotics background.** Rotations, rigid transforms, twists, wrenches, Lie
+  groups, and the dynamics algorithms are all developed from first principles.
 
-## How the course is organised
+## Scope
 
-One folder per chapter, numbered in the order you should read them. Each chapter
-has a `README.md` (the chapter), an `exercises.md`, and ends with a **"Where
-this lives in the library"** table linking the idea to the actual source file.
+By the end you will be able to:
 
-| Part | Chapters | What it covers |
-| ---- | -------- | -------------- |
-| **Getting started** | `00_welcome/` | What this is, what a robot is, setting up your machine. |
-| **Foundations** | `01_cpp_foundations/`, `02_linear_algebra/` | Mostly curated links to the best free resources, plus framing. |
-| **The math of motion** | `03_rotations_and_transforms/`, `04_lie_groups/`, `05_spatial_algebra/` | Rotations, the Lie-group view, spatial 6-vectors. |
-| **Robot models** | `06_kinematic_trees/`, `07_urdf_robot_models/` | How a robot is described as data. |
-| **Kinematics** | `08_forward_kinematics/`, `09_jacobians/` | Where the hand goes; how joint speed maps to hand speed. |
-| **Dynamics** | `10_dynamics_RNEA/`, `11_ABA_and_CRBA/` | Forces, torques, and acceleration. |
-| **Inverse kinematics** | `12_inverse_kinematics/`, `13_differentiable_ik/` | Going from a target back to joint angles. |
-| **Using & trusting it** | `14_python_bindings/`, `15_validation_vs_pinocchio/`, `16_benchmarking/` | Python, correctness, speed. |
+- Reason about the mathematics that governs a robot arm: rotations and rigid
+  transforms as elements of SO(3) and SE(3), and the spatial 6-vectors (twists
+  and wrenches) that carry velocity, acceleration, and force.
+- Read and modify the core algorithms: forward kinematics, the geometric and
+  analytical Jacobians, and the Featherstone dynamics algorithms RNEA, ABA, and
+  CRBA — including their analytical derivatives.
+- Use the library from C++ and Python, and verify every result against the
+  reference implementation, Pinocchio.
+
+## Structure
+
+One directory per chapter, numbered in reading order. Each chapter contains a
+`README.md` (the chapter text), an `exercises.md`, and a final **"Where this
+lives in the library"** table mapping each concept to its source file and the
+relevant symbol. Theory chapters additionally carry an **"In code"** section
+that quotes the implementation and explains the load-bearing lines.
+
+| Part | Chapters | Coverage |
+| ---- | -------- | -------- |
+| **Getting started** | `00_welcome/` | Orientation; building and testing the library. |
+| **Foundations** | `01_cpp_foundations/`, `02_linear_algebra/` | Curated references for the prerequisites, plus the specific C++20 features the library relies on. |
+| **The math of motion** | `03_rotations_and_transforms/`, `04_lie_groups/`, `05_spatial_algebra/` | Rotations and transforms, the Lie-group view, spatial 6-vectors. |
+| **Robot models** | `06_kinematic_trees/`, `07_urdf_robot_models/` | The kinematic tree and the URDF format that describes it. |
+| **Kinematics** | `08_forward_kinematics/`, `09_jacobians/` | End-effector pose; the map from joint rates to spatial velocity. |
+| **Dynamics** | `10_dynamics_RNEA/`, `10b_rnea_derivatives/`, `11_ABA_and_CRBA/` | Inverse and forward dynamics, and the analytical derivatives. |
+| **Inverse kinematics** | `12_inverse_kinematics/`, `13_differentiable_ik/` | Solving for joint angles from a target; differentiating through the solver. |
+| **Using & trusting it** | `14_python_bindings/`, `15_validation_vs_pinocchio/`, `16_benchmarking/`, `17_interactive_wasm/` | Python bindings, Pinocchio parity, performance, and the in-browser build. |
 | **Reference** | `99_glossary.md` | Every term, defined. |
 
-## The learning path
+## Reading path
 
 ```
         ┌─────────────┐
-        │ 00 Welcome  │  ← you are here
+        │ 00 Welcome  │
         └──────┬──────┘
                │
    ┌───────────┴───────────┐
-   │ 01 C++   │ 02 Linear  │   (foundations — link out, read as needed)
-   │ basics   │ algebra    │
+   │ 01 C++   │ 02 Linear  │   (foundations — reference as needed)
+   │ features │ algebra    │
    └───────────┬───────────┘
                │
         ┌──────▼──────────────┐
@@ -67,16 +84,16 @@ this lives in the library"** table linking the idea to the actual source file.
               └────────────────────┬─────────────────────┘
                                    │
               ┌────────────────────▼────────────────────┐
-              │ 10 RNEA → 11 ABA & CRBA (dynamics)       │
+              │ 10 RNEA → 10b derivatives → 11 ABA & CRBA│
               └────────────────────┬─────────────────────┘
                                    │
               ┌────────────────────▼────────────────────┐
               │ 12 IK → 13 Differentiable IK             │
               └────────────────────┬─────────────────────┘
                                    │
-              ┌────────────────────▼────────────────────┐
-              │ 14 Python · 15 Validation · 16 Benchmarks│
-              └──────────────────────────────────────────┘
+       ┌───────────────────────────▼───────────────────────────┐
+       │ 14 Python · 15 Validation · 16 Benchmarks · 17 WASM    │
+       └───────────────────────────────────────────────────────┘
 ```
 
-Ready? Start with [`00_welcome/`](00_welcome/README.md).
+Begin with [`00_welcome/`](00_welcome/README.md).

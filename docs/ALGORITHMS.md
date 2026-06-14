@@ -26,7 +26,7 @@ A spatial 6-vector is laid out as
 Indices `0..2` are angular, `3..5` are linear. This follows Featherstone
 (*Rigid Body Dynamics Algorithms*, 2008), and **diverges from Pinocchio**, which
 orders Motion / Force linear-first. The validation suite applies a 6×6
-permutation converter at the Pinocchio boundary (CLAUDE.md §11); the library
+permutation converter at the Pinocchio boundary; the library
 itself never sees Pinocchio's order.
 
 ### 1.2 Reference frame: **body-fixed**

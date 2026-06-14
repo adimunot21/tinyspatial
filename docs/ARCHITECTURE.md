@@ -16,7 +16,7 @@ are compiled into objects, both for principled reasons:
 | `src/urdf/urdf_loader.cpp` | URDF parsing pulls in tinyxml2; no reason to inline it into every TU. |
 | `src/bindings/main.cpp`    | nanobind glue is heavy template instantiation; keep it off the library's compile path. |
 
-This is a deliberate credibility signal (CLAUDE.md §7, §8): the standalone
+This is a deliberate credibility signal: the standalone
 library has **no Boost, no ROS, no conda**, and compiles against only a vendored
 Eigen. The dependency surface is the README's dependency table and nothing else.
 
@@ -32,7 +32,7 @@ VectorX, MatrixX, Matrix6X           // dynamic, ONLY at the kinematic-tree boun
 Quaternion
 ```
 
-Fixed-size types are used everywhere the dimension is known (CLAUDE.md §7);
+Fixed-size types are used everywhere the dimension is known;
 dynamic sizing appears only where the number of joints is a runtime property
 (`Model`/`Data`, FK/Jacobian outputs). This split is what keeps the hot path
 allocation-free.
@@ -90,7 +90,7 @@ algorithm can sweep `0 → n` outward and `n → 0` inward without a separate so
 ## Conventions that will trip you up
 
 These are the things that diverge from other libraries; get them wrong and
-Pinocchio parity breaks (CLAUDE.md §15):
+Pinocchio parity breaks:
 
 - **Angular-first 6-vectors.** Spatial vectors are `(ω; v)` / `(τ; f)` — angular
   part first. Pinocchio is linear-first. The validation harness permutes
@@ -115,7 +115,7 @@ Pinocchio parity breaks (CLAUDE.md §15):
 - **Iterative best-effort** results (IK convergence) return a result struct with
   a `converged` flag rather than `std::expected`, because "ran N iterations,
   here's the best answer and whether it met tolerance" is the honest shape of
-  the operation. This is the one documented exception to CLAUDE.md §7's
+  the operation. This is the one documented exception to the
   `std::expected`-at-the-boundary rule.
 
 ## Validation as architecture
@@ -127,7 +127,7 @@ the max-abs-diff table to [`PINOCCHIO_PARITY.md`](PINOCCHIO_PARITY.md). The
 `validation.yml` workflow runs this on every PR that touches the algorithms and
 comments the table. The oracle (Pinocchio) lives behind
 `TINYSPATIAL_BUILD_VALIDATION=ON` and never enters the standalone build — its
-toolchain is kept in a separate environment on purpose (CLAUDE.md §11, §15).
+toolchain is kept in a separate environment on purpose.
 
 ## Build targets at a glance
 

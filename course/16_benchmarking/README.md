@@ -21,7 +21,7 @@ produces them is at
   them lie less (CPU pinning, warmup, removing allocations).
 - How to use `perf stat` and `callgrind` to find out *where* the time
   goes — not just how much there is.
-- The principle CLAUDE.md §12 leans on: **don't optimise blind**. Get
+- The governing principle: **don't optimise blind**. Get
   baselines in. Measure the change. Commit the result.
 
 ## The chapters

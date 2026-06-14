@@ -67,6 +67,7 @@ nav:
       - Axis–angle: 03_rotations_and_transforms/03_axis_angle.md
       - Quaternions: 03_rotations_and_transforms/04_quaternions.md
       - Rigid transforms: 03_rotations_and_transforms/05_rigid_transforms.md
+      - "In code: SO3T": 03_rotations_and_transforms/06_in_code.md
       - Exercises: 03_rotations_and_transforms/exercises.md
   - "4 · Lie groups":
       - Overview: 04_lie_groups/README.md
@@ -169,6 +170,7 @@ nav:
       - The optimisation loop: 16_benchmarking/04_optimisation_loop.md
   - "17 · Interactive (WASM)":
       - Overview: 17_interactive_wasm/README.md
+  - Glossary: 99_glossary.md
 
 # Chapters cross-reference source files outside docs_dir (e.g.
 # `../../include/tinyspatial/...`). Those resolve correctly on GitHub when

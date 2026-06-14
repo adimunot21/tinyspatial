@@ -127,5 +127,5 @@ to reason about.
 > ## Where this lives in the library
 >
 > The implicit theorem is applied in
-> [`differentiable.hpp:52-66`](../../include/tinyspatial/ik/differentiable.hpp#L52-L66).
-> Sub-chapter 03 walks through the derivation.
+> [`differentiable.hpp`](../../include/tinyspatial/ik/differentiable.hpp) ·
+> `ik_implicit_derivative`. Sub-chapter 03 walks through the derivation.

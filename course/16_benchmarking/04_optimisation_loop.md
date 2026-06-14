@@ -1,8 +1,8 @@
 # The optimisation loop
 
-CLAUDE.md §12 says: *"Don't optimise blind. Benchmark from Phase 4
-onward."* This chapter is the corresponding discipline: when you *do*
-choose to optimise, here's the loop you run.
+The governing rule is simple: don't optimise blind, and benchmark before
+touching the hot path. This chapter is the corresponding discipline: when
+optimisation is warranted, here is the loop to run.
 
 ## The four steps
 
@@ -149,9 +149,9 @@ Here's what to avoid:
 The most disciplined skill in performance work is *not* optimising.
 Two rules:
 
-- **You've hit the target.** CLAUDE.md §12 sets 1.4× of Pinocchio.
-  Once you're there, every further optimisation costs more in code
-  complexity than it gains in speed.
+- **The target is met.** The bar is 1.4× of Pinocchio. Past that point,
+  every further optimisation costs more in code complexity than it gains
+  in speed.
 - **You've optimised one thing too far.** If you find yourself writing
   `__attribute__((always_inline))` everywhere, or hand-writing SIMD
   intrinsics, ask: is the goal of the codebase still readability?

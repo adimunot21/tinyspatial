@@ -5,7 +5,7 @@ You don't *need* Docker to work on `tinyspatial` — a host with
 
 1. A reproducible build that matches CI exactly.
 2. An isolated home for the **Pinocchio validation oracle**, so conda's
-   libstdc++ never leaks into the standalone C++ build (see `CLAUDE.md` §15).
+   libstdc++ never leaks into the standalone C++ build.
 
 ## Stages
 

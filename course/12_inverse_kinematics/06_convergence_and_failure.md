@@ -172,7 +172,7 @@ libraries (MoveIt, Drake) are the next step up.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | The convergence check | [`dls.hpp:79-83`](../../include/tinyspatial/ik/dls.hpp#L79-L83) |
-> | `IkResult.converged` flag | [`dls.hpp:60`](../../include/tinyspatial/ik/dls.hpp#L60) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | The convergence check | [`dls.hpp`](../../include/tinyspatial/ik/dls.hpp) · `solve_ik_dls` |
+> | `IkResult.converged` flag | `dls.hpp` · `IkResult::converged` |

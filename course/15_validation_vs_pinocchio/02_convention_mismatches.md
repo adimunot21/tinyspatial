@@ -59,8 +59,8 @@ Two things to note:
 - Both `0` and `1` go through the same matrix. There's no per-call
   branching; the permutation is a constant.
 
-CLAUDE.md §15 calls this out as the most common cause of Pinocchio
-parity bugs. Now you know why.
+This ordering mismatch is the single most common cause of spurious
+Pinocchio parity failures.
 
 ### 2. Joint indexing: the "universe joint" offset
 
@@ -107,7 +107,7 @@ either sign).
 
 | Library      | Convention                     |
 | ------------ | ------------------------------ |
-| `tinyspatial` | Normalise to `w ≥ 0` (CLAUDE.md §15) |
+| `tinyspatial` | Normalise to `w ≥ 0`           |
 | Pinocchio    | Normalise to `w ≥ 0`           |
 
 For once, the two libraries agree! Both libraries pick the canonical
@@ -228,4 +228,4 @@ disagreement is a bug or a permutation.
 > | ---------------------------------- | ---------------------------------------- |
 > | Permutation matrix `P_ROW_SWAP`    | [`tests/validation/test_kinematics.py:44-46`](../../tests/validation/test_kinematics.py) |
 > | Joint-index offset comment         | [`tests/validation/test_kinematics.py:9-12`](../../tests/validation/test_kinematics.py) |
-> | Angular-first convention rationale | [`CLAUDE.md` §5, §15](../../CLAUDE.md)   |
+> | Angular-first convention rationale | [`docs/ALGORITHMS.md` §1.1](../../docs/ALGORITHMS.md) |

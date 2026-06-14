@@ -6,7 +6,7 @@ built with `cmake --preset=release` and Pinocchio 3.9.0 (Python side-by-side
 times come from `python/tools/benchmark_vs_pinocchio.py`).
 
 > **Discipline.** Numbers are committed in this file so we notice
-> regressions. Optimisation work follows CLAUDE.md §12: measure first,
+> regressions. Optimisation work follows one rule: measure first,
 > change the smallest thing, re-measure.
 
 ## Headline (`2026-05-27` — Phase 9d)
@@ -20,7 +20,7 @@ times come from `python/tools/benchmark_vs_pinocchio.py`).
 | Jacobian  | `franka_fr3` (7 DoF)   |   **722** |       **1.39 M**   |
 | IK (DLS)  | `franka_fr3`           |  **6240** |        **161 K**   |
 
-CLAUDE.md §12 target for RNEA on a 7-DoF arm: **≥ 6 M / s / core, within
+The performance target for RNEA on a 7-DoF arm: **≥ 6 M / s / core, within
 1.4× of Pinocchio.** Current C++ delta to Pinocchio on Franka: RNEA at
 **~1.6×**, CRBA at **~1.8×** of Pinocchio C++.
 
@@ -191,6 +191,6 @@ remaining levers, with estimated upside, are:
    is ~30 ops; matrix is 9. For algorithms that call `SO3::act` once
    per joint (FK), this is a ~5% win.
 
-CLAUDE.md §12 sets the bar at 1.4× of Pinocchio C++ on RNEA. We're at
-1.6× — close enough that Phase 10 (release / marketing) is the right
-next priority rather than additional perf grinding.
+The target is 1.4× of Pinocchio C++ on RNEA. The current figure is
+1.6× — close enough that release polish is the right next priority
+rather than additional perf grinding.

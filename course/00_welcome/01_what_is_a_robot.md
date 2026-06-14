@@ -1,25 +1,23 @@
-# What is a robot? (for our purposes)
+# The robot model
 
-The word "robot" covers everything from a Roomba to a Mars rover to a chatbot.
-We mean something much more specific, so let's pin it down.
+"Robot" is a broad word. This course uses a precise, narrow meaning: a robot is
+a **kinematic chain** — a sequence of rigid bodies connected by joints, anchored
+to a fixed base.
 
-## A robot is a chain of rigid bodies connected by joints
+## Links and joints
 
-Hold your arm out. Your upper arm is a fairly rigid segment. Your forearm is
-another. They meet at the elbow — a **joint** — which lets the forearm rotate
-relative to the upper arm. Your shoulder is another joint; your wrist, another.
+The model has two primitives:
 
-A robot arm is exactly this idea, made of metal:
+- **Links** — rigid bodies. They neither bend nor stretch. (Physical metal flexes
+  slightly; that deflection is outside the rigid-body model and is ignored.) Each
+  link carries a mass, a centre of mass, and a rotational inertia.
+- **Joints** — the constrained connections between links. The two that dominate
+  robot arms are the **revolute** joint, which rotates about a fixed axis (an
+  elbow), and the **prismatic** joint, which translates along a fixed axis (a
+  drawer slide). The library also supports `fixed` and `floating` joints.
 
-- **Links** — the rigid segments. They don't bend or stretch. (Real metal flexes
-  a tiny bit; we ignore that. That's the "rigid" in *rigid-body dynamics*.)
-- **Joints** — the connections that allow controlled relative motion. The most
-  common is the **revolute** joint, which rotates about a single axis, like your
-  elbow. A **prismatic** joint slides in a straight line, like a drawer.
-
-Chain a few links together with joints and anchor one end to the ground (the
-**base**), and the free end is usually where you bolt a gripper or a tool — we
-call that the **end-effector**.
+A chain of links connected by joints, with one end fixed to the **base**, has a
+free end — the **end-effector** — where a gripper or tool is mounted.
 
 ```
    base                                     end-effector
@@ -27,72 +25,61 @@ call that the **end-effector**.
             link 1     link 2     link 3
 ```
 
-## The three questions this library answers
+## The three questions
 
-Once you have such a chain, almost everything you want to ask falls into three
-buckets. The whole course is, in a sense, just these three questions asked with
-increasing sophistication.
+Almost every quantity of interest about such a chain falls into three problems.
+The course develops each in turn.
 
-### 1. "Given the joint angles, where is everything?" — *forward kinematics*
+### 1. Forward kinematics — configuration to pose
 
-If the elbow is bent 30° and the shoulder is rotated 45°, where exactly is the
-hand in space, and which way is it pointing? This is **forward kinematics**, and
-it's pure geometry — no forces, no time, just "if the joints are *here*, the
-hand is *there*."
+Given the joint values (the **configuration** $q$), where is each link, and in
+particular where is the end-effector, and in what orientation? This is pure
+geometry: no forces, no time. It is the subject of Chapter 08.
 
-### 2. "How do joint speeds relate to hand speed?" — *the Jacobian*
+### 2. The Jacobian — joint rates to spatial velocity
 
-Spin the shoulder motor at 1 radian per second. How fast, and in which
-direction, does the hand move? The answer depends on the current pose, and the
-object that captures it is called the **Jacobian**. It's the bridge between
-"joint space" (motor angles) and "task space" (where the hand is). Jacobians are
-also how a robot senses it's near a **singularity** — a pose where it suddenly
-loses the ability to move in some direction.
+Given the configuration and the joint velocities $\dot q$, what is the resulting
+spatial velocity of the end-effector? The linear map from $\dot q$ to that
+velocity is the **Jacobian** $J(q)$ — the bridge between joint space and task
+space, and the object that exposes **singularities** (configurations where the
+arm loses the ability to move in some direction). Chapter 09.
 
-### 3. "What forces produce what motion?" — *dynamics*
+### 3. Dynamics — forces and motion
 
-Now bring in mass and gravity. To hold the arm still against gravity, the motors
-must apply specific torques. To *accelerate* the arm along a path, they must
-apply more. Computing the torques for a desired motion is **inverse dynamics**
-(the RNEA algorithm); computing the motion that results from given torques is
-**forward dynamics** (the ABA algorithm). These are the heart of the library.
+Introduce mass, inertia, and gravity. **Inverse dynamics** computes the joint
+torques required to produce a desired acceleration (the RNEA algorithm,
+Chapter 10); **forward dynamics** computes the acceleration produced by given
+torques (ABA, Chapter 11). These are the computational core of the library.
 
-## Why is this hard enough to need a library?
+## Why a library is warranted
 
-Two links and one joint, you could do by hand. But a real arm has six or seven
-joints, each rotation composes with all the ones before it, and the bookkeeping
-explodes. Worse, there are many *conventions* — different valid ways to write
-down a rotation or stack up a transform — and mixing them silently gives wrong
-answers that look plausible. A good library picks one set of conventions, applies
-them mechanically, and is tested to death. That's what we're building.
+A single joint can be handled by hand. A 6- or 7-joint arm cannot: each link's
+transform composes with every transform before it, and the bookkeeping grows
+quickly. Compounding the difficulty, the field admits several equally valid
+**conventions** — distinct ways to parameterise a rotation or compose a transform
+— and silently mixing them produces wrong answers that remain numerically
+plausible. The library fixes one set of conventions, applies them mechanically,
+and validates the result against an independent reference. Those convention
+choices are stated explicitly wherever they matter.
 
-## A note on "spatial"
+## "Spatial"
 
-You'll see the word *spatial* everywhere here. In robotics it has a precise
-meaning: a **spatial vector** is a 6-dimensional vector that bundles together a
-rotational part (3 numbers) and a linear part (3 numbers). Velocity, force,
-acceleration — all become 6-vectors. It turns out that packing them this way
-makes the dynamics equations beautifully compact. That's where the *spatial* in
-`tinyspatial` comes from, and Chapter 05 is devoted to it.
+The term **spatial vector** has a precise meaning here: a 6-vector that bundles a
+rotational part (3 components) with a linear part (3 components). Velocity, force,
+and acceleration are each represented this way. This packing is what makes the
+dynamics equations compact, and it gives the library its name. Chapter 05
+develops the spatial algebra in full.
 
-## Check your understanding
-
-1. Name the two physical ingredients every robot arm in this course is made of.
-2. Which of the three questions involves *no* forces or masses?
-3. Your elbow is a ______ joint; a drawer slide is a ______ joint.
-
-(Answers: links and joints; forward kinematics; revolute, prismatic.)
-
-Next: [Set up your machine](02_setup_your_machine.md)
+Next: [Build and test the library](02_setup_your_machine.md)
 
 ---
 
 ### Where this lives in the library
 
-Nothing to point at yet — the data structures for links and joints arrive in
-Chapter 06. For now, just hold the mental model: **links + joints = a robot**.
+The data structures for links and joints are introduced in Chapter 06; this
+chapter establishes only the model. For reference:
 
-| Concept | Where it lives (arrives in a later phase) |
-| ------- | ----------------------------------------- |
-| Joint types (revolute, prismatic, …) | `include/tinyspatial/model/joint.hpp` *(Phase 3)* |
-| The robot as a tree of links | `include/tinyspatial/model/model.hpp` *(Phase 3)* |
+| Concept | Where it lives |
+| ------- | -------------- |
+| Joint types (revolute, prismatic, fixed, floating) | [`model/joint.hpp`](../../include/tinyspatial/model/joint.hpp) · `JointRevoluteT`, `JointPrismaticT` |
+| The robot as a tree of links | [`model/model.hpp`](../../include/tinyspatial/model/model.hpp) · `ModelT` |

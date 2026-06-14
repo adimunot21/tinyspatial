@@ -40,7 +40,7 @@ C++ head-to-head is tracked as future work; the only number measured against
 Pinocchio today is the Python-side comparison in
 [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md). In honest terms: tinyspatial sits at
 **~1.6× of Pinocchio's C++ RNEA** on a 7-DoF arm — short of the project's
-original `≥ 6 M/s` aspiration (PROJECT_PLAN §2), which the fixed-size /
+original `≥ 6 M/s` aspiration, which the fixed-size /
 compile-time work on the roadmap is the path to closing. The gap, the
 optimisation history, and the remaining levers are all documented in
 [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md).

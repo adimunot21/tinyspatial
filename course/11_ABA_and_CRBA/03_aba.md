@@ -139,8 +139,8 @@ $O(n)$.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | Pass 1 (kinematics + seeding) | [`aba.hpp:67-86`](../../include/tinyspatial/algo/aba.hpp#L67-L86) |
-> | Pass 2 (articulated reduction) | [`aba.hpp:89-117`](../../include/tinyspatial/algo/aba.hpp#L89-L117) |
-> | Pass 3 (acceleration propagation) | [`aba.hpp:120-140`](../../include/tinyspatial/algo/aba.hpp#L120-L140) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | Pass 1 (kinematics + seeding) | [`aba.hpp`](../../include/tinyspatial/algo/aba.hpp) · the first `for (int i = 0; …)` loop |
+> | Pass 2 (articulated reduction) | `aba.hpp` · the `for (int i = njoints-1; …)` loop |
+> | Pass 3 (acceleration propagation) | `aba.hpp` · the final `for (int i = 0; …)` loop |

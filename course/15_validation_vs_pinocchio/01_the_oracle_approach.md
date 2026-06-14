@@ -46,7 +46,7 @@ Pinocchio scores 3/3. The alternatives:
   written reference will have the same bugs as your implementation
   because you wrote both.
 
-We use **Pinocchio 3.9.0**, pinned exactly (CLAUDE.md §8). When Pinocchio
+We use **Pinocchio 3.9.0**, pinned exactly. When Pinocchio
 4.0 ships, we'll re-validate against it; in the meantime, pinning means
 nightly-build drift can't sneak parity regressions in.
 
@@ -82,7 +82,7 @@ real bugs. Treat it as a non-negotiable gate, not a nice-to-have.
 ## The build-isolation problem
 
 Pinocchio depends on Boost. Boost is enormous, complex, and exactly
-the kind of thing CLAUDE.md §8 explicitly bans from `tinyspatial`. We
+the kind of dependency `tinyspatial` excludes by design. We
 want a library that compiles standalone with only header-only / vendored
 dependencies — that's a credibility signal for senior C++ reviewers.
 

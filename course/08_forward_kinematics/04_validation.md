@@ -21,9 +21,9 @@ The harness does this, for each fixture URDF and for 1000 random `q`s:
 1000 random `q`'s, the maximum element of the homogeneous-matrix difference
 is at most a few ULPs of a `double`. Effectively bit-identical.
 
-CLAUDE.md §11 sets the tolerance at `1e-10`. We're five orders of magnitude
-better than that. The plan accepted "within `1e-10`"; the implementation
-proved "within machine precision."
+The validation tolerance is `1e-10`. These results are five orders of
+magnitude better than that — the specification accepted "within `1e-10`";
+the implementation delivers "within machine precision."
 
 ## Why this is the right test, not just a victory lap
 

@@ -137,7 +137,7 @@ the next sub-chapter.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | The iteration | [`dls.hpp:71-93`](../../include/tinyspatial/ik/dls.hpp#L71-L93) |
-> | The Jacobian call (LOCAL frame) | [`dls.hpp:82`](../../include/tinyspatial/ik/dls.hpp#L82) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | The iteration | [`dls.hpp`](../../include/tinyspatial/ik/dls.hpp) · `solve_ik_dls` |
+> | The Jacobian call (LOCAL frame) | `dls.hpp` · `compute_jacobian` call inside `solve_ik_dls` |

@@ -129,9 +129,8 @@ entries through this joint. But composite-inertia transport still happens
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | Composite-inertia recursion | [`crba.hpp:91-98`](../../include/tinyspatial/algo/crba.hpp#L91-L98) |
-> | Diagonal block | [`crba.hpp:104-116`](../../include/tinyspatial/algo/crba.hpp#L104-L116) |
-> | Off-diagonal walk | [`crba.hpp:118-139`](../../include/tinyspatial/algo/crba.hpp#L118-L139) |
-> | Motion subspace dispatch | [`crba.hpp:50-76`](../../include/tinyspatial/algo/crba.hpp#L50-L76) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | Composite-inertia recursion | [`crba.hpp`](../../include/tinyspatial/algo/crba.hpp) · the `for (int i = njoints-1; i > 0; …)` loop |
+> | Diagonal and off-diagonal blocks | `crba.hpp` · the `for (int i = 0; …)` loop |
+> | Motion subspace dispatch | `crba.hpp` · `detail::joint_subspace_motion` |

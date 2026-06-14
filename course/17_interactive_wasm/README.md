@@ -1,12 +1,12 @@
 # Chapter 17 — Interactive: the library in your browser
 
-Everything so far has run on your machine: you built the C++, ran the
-tests, maybe poked at the Python bindings. This chapter does something
-different — it runs the **exact same library inside a web page**, with no
-server doing the math. You move a slider, and a C++ `forward_kinematics`
-call computes the new arm pose, in your browser, at 60 fps.
+Every preceding chapter ran the library natively: compiled C++, unit
+tests, the Python bindings. This chapter runs the **exact same library
+inside a web page**, with no server performing the math. Moving a slider
+issues a C++ `forward_kinematics` call that computes the new arm pose in
+the browser, at 60 fps.
 
-That's possible because of two choices made long before this chapter:
+Two earlier design choices make this possible:
 
 1. The library is **header-mostly with a tiny dependency surface** — no
    Boost, no ROS, no system libraries. A compiler that targets
@@ -117,9 +117,9 @@ a singularity, a drag-the-target IK toy. Same C++, no backend.
 
 ## Where this lives in the library
 
-| Concept | File |
-| ------- | ---- |
-| WASM binding (embind) | [`src/web/bindings_wasm.cpp`](../../src/web/bindings_wasm.cpp) |
+| Concept | File · symbol |
+| ------- | ------------- |
+| WASM binding (embind) | [`src/web/bindings_wasm.cpp`](../../src/web/bindings_wasm.cpp) · `Robot`, `EMSCRIPTEN_BINDINGS` |
 | Build target + `wasm` preset | [`CMakeLists.txt`](../../CMakeLists.txt), [`CMakePresets.json`](../../CMakePresets.json) |
 | CI build of the module | [`.github/workflows/wasm.yml`](../../.github/workflows/wasm.yml) |
 | Interactive demo | [`web/demo/`](../../web/demo/) |

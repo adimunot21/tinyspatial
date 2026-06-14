@@ -9,7 +9,7 @@ and parsing one is what this chapter is about.
 ## The sub-chapters
 
 1. [XML, in five minutes](01_xml_basics.md) — what an XML element is, what
-   attributes are, and how to read one if you've never seen it.
+   attributes are, and how to read one.
 2. [The URDF tags we care about](02_urdf_tags.md) — `<robot>`, `<link>`,
    `<joint>`, `<origin>`, `<axis>`. (And what we deliberately ignore.)
 3. [The inertial element](03_inertias.md) — mass, COM, inertia tensor — and

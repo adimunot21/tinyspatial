@@ -108,8 +108,8 @@ gravity. ✓
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | `I·a + v ×* (I·v)` | [`rnea.hpp:120-121`](../../include/tinyspatial/algo/rnea.hpp#L120-L121) |
-> | Gravity trick | [`rnea.hpp:96, 110`](../../include/tinyspatial/algo/rnea.hpp#L96-L110) |
-> | `Sᵀ·f` projection | [`rnea.hpp:63-81`](../../include/tinyspatial/algo/rnea.hpp#L63-L81) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | `I·a + v ×* (I·v)` | [`rnea.hpp`](../../include/tinyspatial/algo/rnea.hpp) · net-wrench lines in the outward loop |
+> | Gravity trick | `rnea.hpp` · `neg_gravity_world`, applied at the root |
+> | `Sᵀ·f` projection | `rnea.hpp` · `detail::joint_subspace_project` |

@@ -1,12 +1,11 @@
 # Chapter 10b — Analytical derivatives of RNEA (advanced)
 
-> **Optional reading.** This chapter is for readers who already understand
-> RNEA (chapter 10) and want to know how the library computes the analytical
-> partials `∂τ/∂q`, `∂τ/∂v`, `∂τ/∂a` in O(N²) time. If you just want to
-> use the function — `ts.rnea_derivatives(model, q, v, a)` returns a tuple
-> of three nv×nv matrices — you can skip this and come back later.
+> **Advanced material.** This chapter assumes RNEA (Chapter 10) and derives how
+> the library computes the analytical partials `∂τ/∂q`, `∂τ/∂v`, `∂τ/∂a` in
+> O(N²) time. The function itself — `rnea_derivatives(model, data, q, v, a, …)`,
+> writing three `nv × nv` matrices — can be used without reading the derivation.
 
-Why would you want these partials?
+The partials matter in three settings:
 
 - **Gradient-based trajectory optimisation.** Methods like DDP, iLQR,
   and SLQ need `∂τ/∂q` and `∂τ/∂v` at every step of a rollout. Computing
@@ -85,8 +84,21 @@ $$
 $$
 
 One 6×6 matrix multiplied by a 6×nv matrix — a single BLAS-3 call per
-joint per derivative input. That's why the algorithm is O(N²) and not
-O(N³).
+joint per derivative input. That is why the algorithm is O(N²) and not
+O(N³). In [`rnea_derivatives.hpp`](../../include/tinyspatial/diff/rnea_derivatives.hpp)
+the entire correction, applied to every column of both matrices at once, is two
+lines:
+
+```cpp
+const Matrix6 m_sv = cross_motion(v_j.vector());
+da_dq[i].noalias() -= m_sv * dv_dq[i];
+da_dv[i].noalias() -= m_sv * dv_dv[i];
+```
+
+`m_sv` is $\mathrm{cross\_motion}(S_i v_{\mathrm{slice}\,i})$, built once per body;
+the `.noalias()` tells Eigen the product has no aliasing so it can write straight
+into the destination without a temporary. Done column-by-column instead, this
+block would be the O(N³) inner loop.
 
 ### Identity 2: force-cross-motion duality
 
@@ -97,12 +109,34 @@ $$
 \Phi(f) \;=\; \begin{bmatrix} -[\tau]_\times & -[v_f]_\times \\ -[v_f]_\times & 0 \end{bmatrix}.
 $$
 
-(Derive this yourself — exercise 1 below — from the cross-force formula
-in chapter 05.)
+(Exercise 1 below derives this from the cross-force formula in chapter 05.) The
+implementation is a private helper:
 
-This lets us compute the velocity-coupling term `cross_force(v[i]) · I · v[i]`
-in matrix form once per body, then multiply by `dv_dq[i]` to get the
-per-column derivative.
+```cpp
+/// `Phi(f)` such that `Phi(f) · m == cross_force(m) · f` for any motion m.
+/// For `f = (τ; v_f)`: `Phi = [[-[τ]_×, -[v_f]_×]; [-[v_f]_×, 0]]`.
+[[nodiscard]] inline Matrix6 force_cross_motion_phi(const Eigen::Ref<const Vector6>& f) {
+  const Matrix3 tau_x = skew(f.head<3>());
+  const Matrix3 vf_x = skew(f.tail<3>());
+  Matrix6 phi = Matrix6::Zero();
+  phi.topLeftCorner<3, 3>() = -tau_x;
+  phi.topRightCorner<3, 3>() = -vf_x;
+  phi.bottomLeftCorner<3, 3>() = -vf_x;
+  return phi;
+}
+```
+
+This converts the velocity-coupling term `cross_force(v[i]) · I · v[i]` into a
+matrix that is built once per body and then multiplied by `dv_dq[i]` for all
+columns at once. The backward pass uses it directly:
+
+```cpp
+const Vector6 iv = i_mat * data.v[i].vector();
+const Matrix6 phi_iv = detail::force_cross_motion_phi(iv);
+const Matrix6 cf_v = cross_force(data.v[i].vector());
+const Matrix6 vel_coupling = phi_iv + cf_v * i_mat;
+df_dq[i].noalias() = i_mat * da_dq[i] + vel_coupling * dv_dq[i];
+```
 
 ## The forward-pass recurrences
 
@@ -200,11 +234,10 @@ That's the whole algorithm.
 
 ## The triangulation
 
-After Phase 6 lands, *three independent algorithms* all agree at machine
-precision:
+Three independent algorithms all agree at machine precision:
 
-- **RNEA** (Phase 5): forward computation of $\tau$.
-- **CRBA** (Phase 5): forward computation of $M(q)$.
+- **RNEA**: forward computation of $\tau$.
+- **CRBA**: forward computation of $M(q)$.
 - **rnea_derivatives** (this chapter): forward computation of all three
   partials including $\partial \tau / \partial a$.
 
@@ -255,12 +288,12 @@ correction column-by-column?
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | Function signature | [`rnea_derivatives.hpp:117-121`](../../include/tinyspatial/diff/rnea_derivatives.hpp#L117-L121) |
-> | Forward-pass recurrences | [`rnea_derivatives.hpp:134-198`](../../include/tinyspatial/diff/rnea_derivatives.hpp#L134-L198) |
-> | Backward pass | [`rnea_derivatives.hpp:200-244`](../../include/tinyspatial/diff/rnea_derivatives.hpp#L200-L244) |
-> | Identity 1 use-site | [`rnea_derivatives.hpp:195-196`](../../include/tinyspatial/diff/rnea_derivatives.hpp#L195-L196) |
-> | Identity 2 (`Phi`) | [`rnea_derivatives.hpp:96-106`](../../include/tinyspatial/diff/rnea_derivatives.hpp#L96-L106) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | Function signature | [`rnea_derivatives.hpp`](../../include/tinyspatial/diff/rnea_derivatives.hpp) · `rnea_derivatives` |
+> | Identity 2 (`Phi`) | `rnea_derivatives.hpp` · `detail::force_cross_motion_phi` |
+> | Forward-pass recurrences | `rnea_derivatives.hpp` · the `for (int i = 0; …)` outward loop |
+> | Identity 1 use-site | `rnea_derivatives.hpp` · the `m_sv * dv_d*` subtractions |
+> | Backward pass | `rnea_derivatives.hpp` · the `for (int i = njoints - 1; …)` loop |
 > | Unit tests | [`tests/unit/diff/test_rnea_derivatives.cpp`](../../tests/unit/diff/test_rnea_derivatives.cpp) |
 > | Pinocchio parity | [`docs/PINOCCHIO_PARITY.md`](../../docs/PINOCCHIO_PARITY.md) |

@@ -1,50 +1,58 @@
 # Walking the tree in code
 
-The whole forward-kinematics function is one short loop. Here it is, lightly
-re-formatted from `forward_kinematics.hpp`:
+The whole forward-kinematics function is one short loop. Here it is verbatim from
+[`forward_kinematics.hpp`](../../include/tinyspatial/algo/forward_kinematics.hpp):
 
 ```cpp
-inline void forward_kinematics(const Model& model, Data& data,
-                               const Eigen::Ref<const VectorX>& q) {
+template <typename S>
+void forward_kinematics(const ModelT<S>& model, DataT<S>& data,
+                        const Eigen::Ref<const typename Types<S>::VectorX>& q) {
   for (int i = 0; i < model.njoints(); ++i) {
-    const Joint& j = model.joints[i];
+    const JointT<S>& j = model.joints[i];
     const int joint_nq = nq(j);
-    const VectorX q_slice = q.segment(model.idx_q[i], joint_nq);
-    const SE3 local = model.placement[i] * joint_transform(j, q_slice);
+    // `q.segment(...)` is a zero-copy Block view; `Ref<const VectorX>` binds
+    // to it directly. Using `const VectorX q_slice = ...` here would heap-
+    // allocate per joint per FK call, which is the dominant cost on small
+    // arms.
+    const SE3T<S> local =
+        model.placement[i] * joint_transform(j, q.segment(model.idx_q[i], joint_nq));
     data.pose_in_parent[i] = local;
     const int parent_idx = model.parent[i];
-    data.pose_in_world[i] =
-        (parent_idx == -1) ? local : data.pose_in_world[parent_idx] * local;
+    data.pose_in_world[i] = (parent_idx == -1) ? local : data.pose_in_world[parent_idx] * local;
   }
 }
 ```
 
-Eleven lines. Read each one against chapter 06–07.
+The function is templated on the scalar `S`. Instantiated on `double` (the alias
+`forward_kinematics(const Model&, Data&, q)`) it is ordinary FK; instantiated on
+the autodiff scalar `Jet` it returns exact derivatives (Chapter 13). Read the body
+through the `double` lens: `ModelT<S>` is `Model`, `SE3T<S>` is `SE3`.
 
 ## Why each piece is the way it is
 
-- **`const Eigen::Ref<const VectorX>& q`** — Eigen's reference type. Accepts
-  `VectorX`, a slice of one, or a `Map` of a raw buffer, without copying
-  (CLAUDE.md §7 idiom).
-- **`q_slice = q.segment(idx_q[i], joint_nq)`** — pulls out just this joint's
-  configuration coordinates. For a revolute joint that's 1 number; for a
-  floating joint, 7.
-- **`placement[i] * joint_transform(j, q_slice)`** — composition order
-  matters: the placement comes first, then the joint moves *from* that
-  placement. This is "go to the joint frame, then rotate/translate."
-- **`pose_in_world[parent[i]] * local`** — chains the cumulative world pose.
-  Note the multiply order: parent-on-left, local-on-right, because
-  `SE(3) * SE(3)` composes "apply right first, then left" (the chapter 03
-  convention).
-- **`parent_idx == -1` is the root case.** Root joints have no parent's pose
-  to multiply with; their `pose_in_world == local`.
+- **`const Eigen::Ref<const ...VectorX>& q`** — Eigen's reference type. Accepts a
+  `VectorX`, a slice of one, or a `Map` of a raw buffer, without copying.
+- **`q.segment(model.idx_q[i], joint_nq)`** — slices out this joint's
+  configuration coordinates (1 for a revolute joint, 7 for a floating one) and
+  passes the slice *directly* into `joint_transform`. The earlier version of this
+  code bound the slice to a named `const VectorX q_slice`, which heap-allocates
+  once per joint per call; the segment view eliminates that allocation, the single
+  largest FK cost on small arms.
+- **`placement[i] * joint_transform(j, ...)`** — composition order matters: the
+  fixed placement applies first, then the joint moves *from* that placement.
+- **`pose_in_world[parent[i]] * local`** — chains the cumulative world pose,
+  parent-on-left, local-on-right, because `SE(3) * SE(3)` applies the right factor
+  first (the Chapter 03 convention).
+- **`parent_idx == -1` is the root case.** A root joint has no parent pose to
+  compose with, so its world pose equals `local`.
 
 ## Cost
 
-A single pass over `njoints` joints. Each iteration is a constant amount of
-work (a few SE(3) multiplies, one `q.segment()` view, one `joint_transform`
-call). So FK is `O(N)` where `N` is the number of joints. No allocations in
-the loop — every output is written into pre-sized `Data` buffers.
+A single pass over `njoints` joints, each iteration a constant amount of work (a
+few SE(3) products, one `q.segment()` view, one `joint_transform`). FK is therefore
+$O(N)$ in the number of joints, with no allocation in the loop — every output is
+written into pre-sized `Data` buffers, and the zero-copy slice above is what keeps
+that promise.
 
 On a Franka FR3 this loop takes around a microsecond on a modern x86 core in
 Release. The dynamics algorithms in chapter 10 will run this same loop as

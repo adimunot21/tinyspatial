@@ -141,7 +141,7 @@ the kind of robustness you want from a default IK solver.
 
 > ## Where this lives in the library
 >
-> | Concept | File / line |
-> | ------- | ----------- |
-> | DLS computation | [`dls.hpp:83-88`](../../include/tinyspatial/ik/dls.hpp#L83-L88) |
-> | `damping` parameter | [`dls.hpp:42-45`](../../include/tinyspatial/ik/dls.hpp#L42-L45) |
+> | Concept | File · symbol |
+> | ------- | ------------- |
+> | DLS computation | [`dls.hpp`](../../include/tinyspatial/ik/dls.hpp) · `solve_ik_dls` |
+> | `damping` parameter | `dls.hpp` · `DlsOptions::damping` |
