@@ -6,22 +6,22 @@ $$
 \tau \;=\; M(q)\,\ddot q \;+\; h(q, \dot q), \qquad h := C\dot q + g,
 $$
 
-gets used in two opposite directions depending on what you're trying to do.
+gets used in two opposite directions depending on the goal.
 
 ## Inverse dynamics: τ given $(q, \dot q, \ddot q)$
 
 Given a motion plan — a sequence of $(q, \dot q, \ddot q)$ over time — what
 torques would the motors need to produce to make it happen?
 
-This is what **RNEA** computes (chapter 10). It's used in:
+This is what **RNEA** computes (chapter 10). It is used in:
 
-- **Computed-torque control**: you have a desired trajectory; the inner
-  feedforward is "the torque RNEA says I need to follow this trajectory."
-  PD feedback then corrects what's left.
+- **Computed-torque control**: given a desired trajectory, the inner
+  feedforward is "the torque RNEA reports as needed to follow this
+  trajectory." PD feedback then corrects what's left.
 - **Trajectory feasibility checking**: given a planned motion, is any torque
   exceeded? (Robots have torque limits per joint.)
-- **Energy / power analysis**: $\dot q^\top \tau$ is mechanical power; you
-  often want to bound it.
+- **Energy / power analysis**: $\dot q^\top \tau$ is mechanical power, which
+  often needs to be bounded.
 
 Why "inverse"? Because we're inverting Newton's second law: given the
 *motion*, find the *force*.
@@ -31,7 +31,7 @@ Why "inverse"? Because we're inverting Newton's second law: given the
 Given torques applied right now (and the current state), what does the robot
 do next?
 
-This is what every *simulator* solves at every step. It's used in:
+This is what every *simulator* solves at every step. It is used in:
 
 - **Physics simulation**: integrate $\ddot q$ to get $\dot q$ to get $q$,
   step by step.
@@ -64,25 +64,24 @@ sparsity pattern). Conceptually clean; computationally fine for $n < 20$.
 ### The short way: ABA
 
 **ABA** does forward dynamics in one $O(n)$ sweep, without ever forming
-$M$. It's faster, more compact, and uses the *articulated-body inertia* —
-a beautiful idea you've never seen before unless you've read Featherstone.
-That's section 03.
+$M$. It is faster, more compact, and uses the *articulated-body inertia*,
+introduced by Featherstone. That is section 03.
 
-## When you actually want $M$
+## When $M$ is actually required
 
-Even with ABA available, sometimes you really do want $M$ in its dense
-form. Examples:
+Even with ABA available, $M$ in its dense form is sometimes needed
+directly. Examples:
 
 - **Operational-space control**: the projection $\Lambda = (J M^{-1}
-  J^\top)^{-1}$ is the apparent inertia at the end-effector, and you need
-  $M$ for that.
+  J^\top)^{-1}$ is the apparent inertia at the end-effector, and requires
+  $M$.
 - **Inertial-shaping controllers**: many adaptive-control proofs require
   $\dot M - 2C$ being skew-symmetric, which is provable structurally but
   also testable numerically with $M$ in hand.
 - **Energy estimation**: total kinetic energy is $\tfrac{1}{2} \dot q^\top M
   \dot q$, an instantaneous scalar that requires $M$.
 
-CRBA is what you use for those.
+CRBA serves those cases.
 
 ## A handy property
 
@@ -94,14 +93,14 @@ $$
 
 I.e. ABA is the inverse of RNEA in $\ddot q$ space. The tests prove this:
 `test_aba.cpp:InverseOfRnea` runs 5 random samples on each of 4 fixtures
-and checks the round-trip to $10^{-9}$. If your forward and inverse
-dynamics don't pass this, *one of them* is wrong.
+and checks the round-trip to $10^{-9}$. Forward and inverse dynamics that
+fail this test disagree, and *one of them* is wrong.
 
-The library does the same thing, by the way: `test_aba.cpp:ConsistentWithCrbaAndRnea`
+The library applies the same cross-check directly: `test_aba.cpp:ConsistentWithCrbaAndRnea`
 checks $\ddot q_{\mathrm{ABA}} = M^{-1}(\tau - h)$ where $M$ comes from
 CRBA and $h$ from RNEA — three independent algorithms agreeing to $10^{-9}$
-on every fixture is excellent triangulation. If any one of them had a sign
-flip, the test would fail loudly.
+on every fixture is strong triangulation. A sign flip in any one of them
+makes the test fail loudly.
 
 > ## Where this lives in the library
 >

@@ -1,7 +1,7 @@
 # Computing it: the screw-axis walk
 
 The algorithm is a short walk from the target link `L` *up* to the root,
-filling in one column per joint along the way. Here's the LOCAL-frame
+filling in one column per joint along the way. The LOCAL-frame
 version, lightly re-formatted from `jacobian.hpp`:
 
 ```cpp
@@ -70,15 +70,15 @@ revisit this in Phase 9. For Phase 4 the naive form is plenty fast.
 
 ## A trap to avoid
 
-You might think you can write the LWA Jacobian by computing the LOCAL
+A tempting shortcut writes the LWA Jacobian by computing the LOCAL
 Jacobian and then "rotating the angular and linear parts independently."
-That's *only* true because the LWA frame shares the link's origin. For
+That is *only* valid because the LWA frame shares the link's origin. For
 the WORLD Jacobian, the off-diagonal `[t]× R` block of the adjoint couples
-angular into linear: if you compute the WORLD form column-by-column or
-rotate naively, you'll silently drop the coupling, and the linear rows
-will be wrong by exactly the velocity-of-the-link's-rotation term. The
-parity test would catch that immediately; better not to write it that way
-in the first place.
+angular into linear: computing the WORLD form column-by-column or
+rotating naively silently drops the coupling, and the linear rows
+come out wrong by exactly the velocity-of-the-link's-rotation term. The
+parity test catches this immediately, but the construction is better
+avoided in the first place.
 
 ## Where this lives in the library
 

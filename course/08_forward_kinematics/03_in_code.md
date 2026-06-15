@@ -58,15 +58,15 @@ On a Franka FR3 this loop takes around a microsecond on a modern x86 core in
 Release. The dynamics algorithms in chapter 10 will run this same loop as
 their *first step* hundreds of times per second.
 
-## A reused convention you may have missed
+## An easily missed convention
 
 `pose_in_parent[i]` stores `placement[i] * joint_transform(...)` — the
 *combined* parent-frame contribution, not just the URDF placement. We don't
 store the placement and joint pieces separately, because every downstream
 algorithm wants the combined one.
 
-If you ever need just the URDF placement, it's still in `Model::placement[i]`
-(constant). If you ever need just the joint motion, recompute it with
+The bare URDF placement remains available in `Model::placement[i]` (constant).
+The bare joint motion can be recomputed with
 `joint_transform(joints[i], q.segment(idx_q[i], nq(joints[i])))`. The Data
 holds the *useful product*.
 

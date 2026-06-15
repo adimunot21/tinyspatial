@@ -7,7 +7,7 @@ optimisation is warranted, here is the loop to run.
 ## The four steps
 
 1. **Measure** — what does the code do *today*?
-2. **Hypothesise** — what is the specific change you think will help,
+2. **Hypothesise** — what is the specific change expected to help,
    and *why*?
 3. **Change** — make the smallest possible diff that tests the hypothesis.
 4. **Re-measure** — did it move the number? Is it still correct?
@@ -121,7 +121,7 @@ element rather than re-`assign`-ing the whole vector. Hot-loop users
 (analytical-derivative inner sweeps) now pay no allocations per call.
 ```
 
-The before/after numbers in the commit message let future-you (or a code
+The before/after numbers in the commit message let a future maintainer (or a code
 reviewer) see exactly what changed, without having to re-run the
 benchmark themselves.
 
@@ -129,16 +129,16 @@ benchmark themselves.
 
 Here's what to avoid:
 
-1. **"This looks slow."** Without a measurement, you don't know. The
-   change you made might have made things worse and you'd never know.
-2. **Changing many things at once.** If you replace `std::variant` with
-   `enum` *and* cache rotation matrices *and* inline the inner sweep,
-   and the number goes down 30%, you have no idea which of those moves
+1. **"This looks slow."** Without a measurement, there is no way to know. The
+   change might have made things worse, undetected.
+2. **Changing many things at once.** Replacing `std::variant` with
+   `enum` *and* caching rotation matrices *and* inlining the inner sweep,
+   then seeing the number go down 30%, gives no indication of which move
    contributed. Worse — one of them might have *hurt*, and the others
    compensated.
 3. **Optimising the wrong thing.** Profiling says the hot loop is in
-   `Eigen::internal::scalar_product_op`, you spend a week rewriting
-   `SE3::operator*`, and discover it was a tiny fraction of total time.
+   `Eigen::internal::scalar_product_op`, a week goes into rewriting
+   `SE3::operator*`, and it turns out to be a tiny fraction of total time.
    Look at the profile *first*.
 4. **Measuring once, calling it done.** Benchmark noise is real. Run
    a few times. If the change is at noise level, it's not an
@@ -152,7 +152,7 @@ Two rules:
 - **The target is met.** The bar is 1.4× of Pinocchio. Past that point,
   every further optimisation costs more in code complexity than it gains
   in speed.
-- **You've optimised one thing too far.** If you find yourself writing
+- **One thing has been optimised too far.** When the work involves writing
   `__attribute__((always_inline))` everywhere, or hand-writing SIMD
   intrinsics, ask: is the goal of the codebase still readability?
 
@@ -179,8 +179,8 @@ END
 ```
 
 That's the whole game. The structure is unglamorous; the payoff is
-that every commit makes the code measurably better and you can prove
-it.
+that every commit makes the code measurably better, with proof
+attached.
 
 > ## Where this lives in the library
 >

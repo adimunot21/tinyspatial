@@ -1,10 +1,9 @@
 # Articulated bodies (ABA)
 
-ABA is the kind of algorithm that looks impossible the first time you see
-it. *Of course* you can compute $\ddot q$ — solve a linear system,
-$\ddot q = M^{-1}(\tau - h)$, done. But ABA does it without ever forming
-$M$, without ever doing a matrix inversion, in $O(n)$ time. The trick is
-a redefinition: the **articulated-body inertia**.
+ABA computes $\ddot q$ by an indirect route. The direct route is to solve a
+linear system, $\ddot q = M^{-1}(\tau - h)$. ABA instead computes $\ddot q$
+without ever forming $M$, without ever doing a matrix inversion, in $O(n)$
+time. The mechanism is a redefinition: the **articulated-body inertia**.
 
 ## The redefinition
 
@@ -34,8 +33,8 @@ $$
 
 The $U_i D_i^{-1} U_i^\top$ piece is a rank-$n_{v,i}$ subtraction —
 it says "in the direction joint $i$ is free, the subtree below joint $i$
-provides no resistance, because joint $i$ can just move." Substract that
-component and you have the inertia the *parent* of $i$ sees.
+provides no resistance, because joint $i$ can just move." Subtracting that
+component leaves the inertia the *parent* of $i$ sees.
 
 The bias force gets a similar correction:
 
@@ -82,21 +81,21 @@ In `aba.hpp`, these are three top-level `for` loops, all $O(n)$.
 
 ## Why does this work?
 
-Featherstone's derivation is a little dense, but the idea is intuitive
-once you see it: the kinematic chain *below* a joint can be replaced, for
-the purpose of computing what joint $i$ feels, by a single articulated
-"super-rigid-body" with effective inertia $I^A_i$ and bias $p^A_i$. Each
-inward step replaces a parent + reduced-subtree by a new articulated body
-whose parameters absorb the joint.
+Featherstone's derivation is dense, but the underlying idea is direct: the
+kinematic chain *below* a joint can be replaced, for the purpose of
+computing what joint $i$ feels, by a single articulated "super-rigid-body"
+with effective inertia $I^A_i$ and bias $p^A_i$. Each inward step replaces a
+parent + reduced-subtree by a new articulated body whose parameters absorb
+the joint.
 
-So the iteration is: keep reducing the tree to its articulated parent,
-one joint at a time. By the time you reach the base, you've collapsed
-everything down to a (fictitious) free-floating body whose acceleration
-follows from $-g$. Then the outward sweep "unrolls" the reductions in
-reverse, dropping each joint's $\ddot q_i$ out as it goes.
+So the iteration reduces the tree to its articulated parent, one joint at a
+time. By the time it reaches the base, everything has collapsed down to a
+(fictitious) free-floating body whose acceleration follows from $-g$. The
+outward sweep then "unrolls" the reductions in reverse, dropping each
+joint's $\ddot q_i$ out as it goes.
 
-It's beautiful, and it's exactly $O(n)$. A 30-DoF humanoid simulator,
-done in a fraction of a millisecond.
+The result is exactly $O(n)$ — a 30-DoF humanoid simulator step in a
+fraction of a millisecond.
 
 ## The inertia transport
 
@@ -134,8 +133,8 @@ algorithm needs $D_i^{-1}$, but only in small blocks:
 - Floating: $D_i^{-1}$ is the inverse of a 6×6 SPD matrix; Eigen handles
   it with an LLT in a handful of microseconds.
 
-There is *never* an $n \times n$ matrix inversion. That's how you get
-$O(n)$.
+There is *never* an $n \times n$ matrix inversion. That is the source of
+the $O(n)$ cost.
 
 > ## Where this lives in the library
 >

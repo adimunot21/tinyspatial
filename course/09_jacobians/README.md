@@ -1,9 +1,9 @@
 # Chapter 09 — Jacobians
 
-Forward kinematics tells you *where* a link is. The **Jacobian** tells you
-*how fast it would move* if you moved the joints. It's the linear map between
+Forward kinematics gives *where* a link is. The **Jacobian** gives
+*how fast it would move* if the joints moved. It is the linear map between
 joint velocities and link velocity, and it sits between FK (chapter 08) and
-every iterative algorithm that wants to descend on it: IK (chapter 12),
+every iterative algorithm that descends on it: IK (chapter 12),
 optimisation, robust control.
 
 Three things make Jacobians trickier than FK:

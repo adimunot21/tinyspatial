@@ -3,11 +3,11 @@
 A twist is only meaningful relative to a frame. "The end-effector moves at
 1 m/s along x" *in whose x?* So the Jacobian — which produces twists — comes
 in three flavours, one per reference frame. `compute_jacobian` takes the
-frame as a parameter; the choice matters for which one to pick downstream.
+frame as a parameter; the choice matters downstream.
 
 ## The three flavours
 
-Pinocchio names them this way, and we follow exactly:
+Pinocchio names them this way, and this library follows exactly:
 
 | Frame | What its rows mean |
 | ----- | ------------------ |
@@ -53,10 +53,10 @@ A small decision table:
 | -------- | ----- |
 | "Where would the end-effector go if I pushed each joint at unit velocity, in the gripper's own coords?" | `LOCAL` |
 | "What's the velocity of the gripper as I see it from my robot operator console?" | `LOCAL_WORLD_ALIGNED` |
-| "I'm composing this with another Plücker that's in the world frame." | `WORLD` |
-| "I'm writing IK code." | `LOCAL_WORLD_ALIGNED` (almost always) |
+| "Composing this with another Plücker that is in the world frame." | `WORLD` |
+| "Writing IK code." | `LOCAL_WORLD_ALIGNED` (almost always) |
 
-The IK chapter (12) walks through why the LWA frame plays best with most
+The IK chapter (12) covers why the LWA frame plays best with most
 control conventions.
 
 ## Order matters

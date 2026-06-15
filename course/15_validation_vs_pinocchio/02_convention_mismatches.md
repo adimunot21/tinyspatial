@@ -1,18 +1,18 @@
 # Convention mismatches are bugs in disguise
 
 The first time `tinyspatial`'s RNEA output disagreed with Pinocchio's by
-a factor of ten, my reaction was "we have a bug in the algorithm." Three
-hours of staring at the code later, the actual answer: Pinocchio uses
-linear-first spatial-vector ordering, and we use angular-first. Wrong
-permutation of the 6-vector → wrong torques out → looks like a math bug,
-isn't.
+a factor of ten, the obvious suspicion was a bug in the algorithm. The
+actual cause: Pinocchio uses
+linear-first spatial-vector ordering, and `tinyspatial` uses angular-first.
+Wrong permutation of the 6-vector → wrong torques out → looks like a math
+bug, isn't.
 
 This pattern repeats. Every convention difference between two robotics
-libraries looks like a bug the first time you encounter it. This chapter
-is a catalogue, so the next time it happens to you (it will) you can
-recognize the shape.
+libraries looks like a bug on first encounter. This chapter
+is a catalogue of those differences, so the shape is recognizable the
+next time one appears.
 
-## The five mismatches you will hit
+## The five mismatches to expect
 
 Each one has the same shape: the math is the same, but the *layout* of
 inputs/outputs differs by a known permutation or sign. The fix is
@@ -21,7 +21,7 @@ always at the comparison boundary, never in the algorithm.
 ### 1. Spatial-vector ordering: angular-first vs linear-first
 
 A 6-D twist (spatial velocity) is `(ω, v)` — angular part and linear
-part. The question is: do you store ω first or v first?
+part. The question is whether ω or v comes first in storage.
 
 | Library      | Convention   | A twist looks like         |
 | ------------ | ------------ | -------------------------- |
@@ -52,10 +52,10 @@ same permutation applied to the rows.
 
 Two things to note:
 
-- We don't change `tinyspatial`'s convention. The fix is one matrix
-  multiply at the test boundary. If we changed the convention, every
-  spatial-algebra header would invert and we'd lose Featherstone's
-  textbook for our reader.
+- `tinyspatial`'s convention does not change. The fix is one matrix
+  multiply at the test boundary. Changing the convention would invert every
+  spatial-algebra header and forfeit Featherstone's
+  textbook as a reference.
 - Both `0` and `1` go through the same matrix. There's no per-call
   branching; the permutation is a constant.
 
@@ -77,7 +77,7 @@ joint** — the parent of all real joints. So a 7-DoF Franka has:
 
 So `pin_model.njoints == 8` and `ts_model.njoints == 7`.
 
-When you iterate to compare poses:
+Iterating to compare poses:
 
 ```python
 for k in range(1, pin_model.njoints):       # 1..7 in Pinocchio
@@ -86,7 +86,7 @@ for k in range(1, pin_model.njoints):       # 1..7 in Pinocchio
     assert np.allclose(pin_pose, ts_pose, atol=1e-10)
 ```
 
-This *also* affects how you ask for the last joint:
+This *also* affects how the last joint is addressed:
 
 ```python
 last_pin = pin_model.njoints - 1   # 7 = the wrist
@@ -94,15 +94,15 @@ last_ts  = last_pin - 1            # 6
 ```
 
 The convention is reasonable on both sides: Pinocchio's universe
-joint is a natural place to anchor a floating base; we don't have
-floating bases as a first-class concept yet. The fix at the boundary
+joint is a natural place to anchor a floating base; `tinyspatial` doesn't
+have floating bases as a first-class concept yet. The fix at the boundary
 is just to subtract one.
 
 ### 3. Quaternion sign
 
 A unit quaternion `q` and its negation `-q` represent the *same
-rotation*. So you have a choice: store the canonical representative
-where `w ≥ 0`, or store whatever you computed last (which could be
+rotation*. So there's a choice: store the canonical representative
+where `w ≥ 0`, or store whatever was computed last (which could be
 either sign).
 
 | Library      | Convention                     |
@@ -110,18 +110,18 @@ either sign).
 | `tinyspatial` | Normalise to `w ≥ 0`           |
 | Pinocchio    | Normalise to `w ≥ 0`           |
 
-For once, the two libraries agree! Both libraries pick the canonical
+Here the two libraries agree. Both pick the canonical
 representative. So this mismatch isn't actually a problem between
-`tinyspatial` and Pinocchio — but it *will* bite you if you ever
-compare against MATLAB's Robotics Toolbox, ROS 1's `tf`, or any
+`tinyspatial` and Pinocchio — but it *will* surface in any
+comparison against MATLAB's Robotics Toolbox, ROS 1's `tf`, or any
 library that doesn't normalise.
 
 Mentioned here because:
 
-1. Your test inputs (`pin.randomConfiguration(model)`) can return
-   either sign on free joints. If your code compares quaternions
-   component-wise, half your random tests will fail.
-2. The right way to compare two rotations is via `(R₁ · R₂⁻¹).log()`
+1. Test inputs (`pin.randomConfiguration(model)`) can return
+   either sign on free joints. Code that compares quaternions
+   component-wise fails half of its random tests.
+2. The correct way to compare two rotations is via `(R₁ · R₂⁻¹).log()`
    norm, not component-by-component. The log map yields a unique
    rotation vector in `[−π, π]`.
 
@@ -141,13 +141,11 @@ WORLD, LOCAL_WORLD_ALIGNED}`. **Same names, same definitions.**
 There *is* a subtle gotcha though: the frame argument changes the
 *output* coordinates, not the input. So a Jacobian's rows correspond
 to the chosen frame; its columns always correspond to the joint
-velocities `q̇`. When you apply the row-swap permutation (mismatch #1
-above), you do it on the rows of the Jacobian *after* the frame is
-chosen.
+velocities `q̇`. The row-swap permutation (mismatch #1 above) applies
+to the rows of the Jacobian *after* the frame is chosen.
 
-If you mix this up — apply the permutation before the frame conversion,
-say — you get a Jacobian that's wrong in 36 of its 42 entries. Don't
-ask me how I know.
+Mixing this up — applying the permutation before the frame conversion —
+yields a Jacobian that is wrong in 36 of its 42 entries.
 
 ### 5. Gravity vector convention
 
@@ -158,7 +156,7 @@ pin_model.gravity.linear  = np.array([0, 0, -9.81])
 pin_model.gravity.angular = np.zeros(3)
 ```
 
-If you don't set it, it has a default — usually `[0, 0, -9.81]`, but
+When it is not set, it has a default — usually `[0, 0, -9.81]`, but
 it can be mutated by other code. The validation script sets it
 explicitly to be safe:
 
@@ -173,12 +171,12 @@ pin_model.gravity.angular = np.zeros(3)
 rnea(model, data, q, v, a, tau, /*gravity=*/Vector3(0, 0, -9.81))
 ```
 
-This is by design — passing gravity per-call lets you do "RNEA with
-gravity off" without mutating the model. But when comparing to Pinocchio,
-you have to remember to *set* Pinocchio's gravity to match yours.
+This is by design — passing gravity per-call allows "RNEA with
+gravity off" without mutating the model. But the comparison to Pinocchio
+requires *setting* Pinocchio's gravity to match.
 
-If you forget, you get a constant per-joint bias on the order of
-`m·g·d` (mass times gravity times moment arm) — looks like a
+Omitting that step produces a constant per-joint bias on the order of
+`m·g·d` (mass times gravity times moment arm) — it looks like a
 systematic error in the algorithm, but it's just one missing line in
 the test setup.
 
@@ -208,7 +206,7 @@ exactly what validation is for.
 
 ## How to avoid creating new mismatches
 
-When you add a new algorithm, ask up front:
+When adding a new algorithm, ask up front:
 
 - What's my input convention?
 - What's Pinocchio's input convention for the same algorithm?

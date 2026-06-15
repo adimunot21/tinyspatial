@@ -2,11 +2,11 @@
 
 Google Benchmark (`benchmark`) is the de-facto standard C++ micro-benchmarking
 library. It handles the bookkeeping that makes a fair benchmark — iteration
-counts, timing, statistical reporting, CPU affinity warnings — so you don't
-have to.
+counts, timing, statistical reporting, CPU affinity warnings — so the
+benchmark code doesn't have to.
 
-Open [`benchmarks/bench_rnea.cpp`](../../benchmarks/bench_rnea.cpp) and we'll
-walk through it.
+[`benchmarks/bench_rnea.cpp`](../../benchmarks/bench_rnea.cpp) is the
+worked example for this chapter.
 
 ## The minimal benchmark
 
@@ -25,7 +25,7 @@ BENCHMARK_MAIN();
 
 That's it. The `for (auto _ : state)` loop is special — Google Benchmark
 adapts the iteration count to reach a target wall-clock budget (default:
-0.5 seconds per row). You almost never write the loop count yourself.
+0.5 seconds per row). The loop count is almost never written by hand.
 
 `BENCHMARK_MAIN()` expands to a `main()` that handles command-line flags
 and dispatches to all registered benchmarks.
@@ -74,9 +74,9 @@ Five details worth knowing:
 ### 1. Setup goes *outside* the timed loop
 
 The `ModelKit` constructor reads the URDF, allocates `Data`, and
-randomises `q`. None of that is part of the per-call cost we want to
-measure. It runs *once* per registered row. The `for (auto _ : state)`
-loop runs exactly the algorithm we care about.
+randomises `q`. None of that is part of the per-call cost under
+measurement. It runs *once* per registered row. The `for (auto _ : state)`
+loop runs exactly the algorithm of interest.
 
 ### 2. `BENCHMARK_CAPTURE` parameterises the benchmark
 
@@ -95,8 +95,8 @@ Reads cleanly in the output.
 ### 3. `DoNotOptimize` is the *anti-elision* tool
 
 Without `DoNotOptimize`, the compiler can see that the result of `rnea(...)`
-is never used outside the loop and *elide the entire call* — leaving you
-benchmarking nothing. Whoops.
+is never used outside the loop and *elide the entire call* — leaving the
+benchmark measuring nothing.
 
 `benchmark::DoNotOptimize(x)` emits an empty assembly clobber that tells
 the compiler "treat the value of `x` as if it could be read by some
@@ -116,11 +116,11 @@ treat all of memory as clobbered."
 
 ### 4. `state.SetItemsProcessed(state.iterations())`
 
-This tells the framework "we did 1 logical item of work per inner
+This tells the framework "1 logical item of work was done per inner
 iteration." Google Benchmark then reports `items_per_second=...` which
-is the throughput we actually care about, not just `ns/iter`.
+is the throughput that matters, not just `ns/iter`.
 
-For batched algorithms you'd say `state.SetItemsProcessed(state.iterations() * batch_size)`.
+For batched algorithms the call becomes `state.SetItemsProcessed(state.iterations() * batch_size)`.
 
 ### 5. The output
 
@@ -131,14 +131,14 @@ bench_rnea_impl/franka_fr3   4540 ns   4540 ns   154083  items_per_second=220.28
 Five columns:
 
 - **Time** — wall-clock per iteration. Wall-clock can include the OS
-  scheduling you off-CPU.
+  scheduling the process off-CPU.
 - **CPU** — CPU time per iteration. Should match Time unless the OS
-  preempts you.
+  preempts the process.
 - **Iterations** — how many times the inner loop ran. Google Benchmark
   picked this automatically to fit in `--benchmark_min_time` seconds.
-- **items_per_second** — the throughput we set with `SetItemsProcessed`.
+- **items_per_second** — the throughput set with `SetItemsProcessed`.
 
-When Time and CPU disagree by more than a few percent, you've got
+When Time and CPU disagree by more than a few percent, that's
 scheduling noise. Re-run, or use `--benchmark_min_warmup_time=0.5s` to
 let things settle.
 
@@ -157,10 +157,10 @@ The fix on Linux is to lock the CPU governor to `performance`:
 sudo cpupower frequency-set --governor performance
 ```
 
-For maximum reproducibility you'd also pin the benchmark to a specific
-core with `taskset -c 3 ./bench_rnea`. We don't do this in our committed
-numbers because it's machine-specific; the variance we see is small enough
-to not matter for the conclusions we're drawing (3× vs 1× ratios).
+For maximum reproducibility, also pin the benchmark to a specific
+core with `taskset -c 3 ./bench_rnea`. The committed numbers don't do this
+because it's machine-specific; the observed variance is small enough
+to not matter for the conclusions being drawn (3× vs 1× ratios).
 
 ## Filtering and reporting
 
@@ -182,13 +182,13 @@ Repeat for confidence intervals:
 ./bench_rnea --benchmark_repetitions=5 --benchmark_report_aggregates_only=true
 ```
 
-For one-off optimisation work, the defaults are fine. For numbers that
+For one-off optimisation work, the defaults suffice. For numbers that
 go on a graph, run repetitions and report mean+stddev.
 
 ## What's next
 
-Now that we can *time* things, the next chapter is about figuring out
-*where* the time goes — which is what tells you what to optimise.
+With timing in hand, the next chapter is about figuring out
+*where* the time goes — which is what identifies what to optimise.
 
 > ## Where this lives in the library
 >

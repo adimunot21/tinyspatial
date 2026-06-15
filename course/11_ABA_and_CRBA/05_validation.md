@@ -70,15 +70,15 @@ predicted.
 
 ## What this combined harness catches
 
-- **CRBA off-diagonal indexing.** Easy bug: writing $M[i, j]$ when you
-  meant $M[j, i]$. Random configs catch this immediately because
+- **CRBA off-diagonal indexing.** Easy bug: writing $M[i, j]$ in place of
+  $M[j, i]$. Random configs catch this immediately because
   $M$ is symmetric but the bug breaks symmetry.
-- **ABA's $D_i^{-1}$ inversion.** If for a multi-DOF joint you transpose
-  $S_i$ wrong, $D_i$ becomes non-positive-definite or wrong-sized; the
+- **ABA's $D_i^{-1}$ inversion.** A transposed $S_i$ on a multi-DOF joint
+  makes $D_i$ non-positive-definite or wrong-sized; the
   inverse blows up.
 - **Inertia transport sign / convention.** ABA's congruence transport
   ($X^* I X^{*\top}$) is the easiest place to write
-  `motion_plucker` where you mean `force_plucker`. The cross-check
+  `motion_plucker` in place of `force_plucker`. The cross-check
   on a 7-DOF arm with non-trivial geometry catches it loud.
 
 ## What it doesn't catch
@@ -96,8 +96,8 @@ Same caveats as RNEA's harness (chapter 10, section 05):
 [`docs/PINOCCHIO_PARITY.md`](../../docs/PINOCCHIO_PARITY.md) is
 auto-generated. Every row is a tinyspatial algorithm × Pinocchio
 algorithm × fixture URDF, with the max-abs-diff across 1000 random
-samples. If you make changes to the dynamics, regenerate it, and the
-table goes red, *don't* relax the tolerance — find the bug.
+samples. After a change to the dynamics, regenerate it; if the table goes
+red, *don't* relax the tolerance — find the bug.
 
 > ## Where this lives in the library
 >

@@ -1,7 +1,7 @@
 # Exercises — Chapter 06
 
-These wire your head into the array-of-joints data layout. Most are short C++
-snippets; you can run them by adapting
+These exercises build familiarity with the array-of-joints data layout. Most
+are short C++ snippets; they can be run by adapting
 [`src/examples/se3_basics.cpp`](../../src/examples/se3_basics.cpp) or by writing
 a quick test under `tests/`.
 

@@ -1,7 +1,7 @@
 # Null-space and secondary tasks
 
 A 7-DoF arm has *more* joints than the 6 dimensions of a rigid-body
-pose. You can hold the hand in place and still move the elbow. The
+pose. The hand can be held in place while the elbow still moves. The
 extra freedom is the **null-space of the Jacobian** — motions that
 don't move the end-effector.
 
@@ -66,7 +66,7 @@ $$
 \delta q_{\text{secondary}} \;=\; N \cdot (q_{\mathrm{rest}} - q).
 $$
 
-In practice this gives you "the elbow-up branch" or "the joint-limits-
+In practice this yields "the elbow-up branch" or "the joint-limits-
 respecting branch" of IK without writing a smarter solver.
 
 The library implements exactly this in `nullspace.hpp`.
@@ -158,8 +158,8 @@ $$
 $$
 
 projecting each level into the null-space of all higher-priority
-levels. This requires keeping the augmented projector $N_k$ around as
-you walk down the priority list.
+levels. This requires keeping the augmented projector $N_k$ around while
+descending the priority list.
 
 The library currently supports only two levels (primary + posture
 secondary). Adding multi-priority is in scope for a future phase if a

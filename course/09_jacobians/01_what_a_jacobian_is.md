@@ -1,6 +1,6 @@
 # What a Jacobian is
 
-You have a robot. You move the motors at velocities $\dot q$. The hand
+Consider a robot whose motors move at velocities $\dot q$. The hand
 moves with spatial velocity $v$ (a twist; chapters 04 and 05). The
 relationship between them is *linear* at any instant:
 
@@ -19,7 +19,7 @@ Column $j$ of $J(q)$ is the spatial velocity the link would acquire if joint
 $j$ moved at unit velocity and every other joint stayed still. That's the
 **screw axis** of joint $j$, expressed in the chosen reference frame.
 
-This makes Jacobians much easier to reason about than they look at first:
+This makes Jacobians easier to reason about than they look at first:
 each column has a direct physical reading.
 
 - **Revolute joint** column: a rotation about the joint axis (angular part)
@@ -41,19 +41,19 @@ J_local(q) · δ  ≈  log( T(q)^{-1} · T(q + δ) )    for small δ
 ```
 
 — a finite-difference statement of "$J$ is the derivative of $\log \circ \mathrm{FK}$
-at the identity." Pass that check at `1e-6` for 1000 random `q` per robot
-and you can be reasonably sure your analytical Jacobian is correct *before*
-you reach for Pinocchio.
+at the identity." Passing that check at `1e-6` for 1000 random `q` per robot
+establishes the analytical Jacobian as correct *before*
+any comparison against Pinocchio.
 
 ## Why this matters
 
-Anywhere you'd want to "go in the direction of the gradient" of an end-
-effector quantity in joint space, you use the Jacobian (or its inverse /
+Any procedure that "goes in the direction of the gradient" of an end-
+effector quantity in joint space uses the Jacobian (or its inverse /
 pseudo-inverse / damped-pseudo-inverse) to convert. Concretely:
 
-- **Inverse kinematics** (chapter 12): take a Cartesian error, ask "how
-  should I move the joints to reduce it?" — that's $J^{+}$ times the error.
-- **Resolved-rate motion**: command "move the hand at this twist" — that's
+- **Inverse kinematics** (chapter 12): take a Cartesian error and determine
+  the joint motion that reduces it — that is $J^{+}$ times the error.
+- **Resolved-rate motion**: command "move the hand at this twist" — that is
   $J^{+}$ times the desired twist.
 - **Force / torque mapping**: a wrench at the end-effector projects to joint
   torques by $J^\top$ (a fact that follows from duality, chapter 05).

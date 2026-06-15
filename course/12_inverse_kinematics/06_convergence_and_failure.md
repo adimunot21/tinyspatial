@@ -59,8 +59,8 @@ iteration can oscillate without converging. Symptoms:
 - Sometimes the configuration goes to extreme values (joints near
   their limits).
 
-**Diagnosis:** Print $\|J \delta q - e\|$ each iteration. If the
-linearisation is bad (residual is large), you're near a singularity.
+**Diagnosis:** Print $\|J \delta q - e\|$ each iteration. A bad
+linearisation (large residual) indicates proximity to a singularity.
 
 **Fix options:**
 
@@ -84,16 +84,16 @@ part, in radians, the magnitude of the rotation axis × angle vector).
 At a tolerance of $10^{-6}$ that's about a micrometer of position error
 or a microradian of rotation error.
 
-This is **very tight**. For most applications you can comfortably set
+This is **very tight**. Most applications can comfortably set
 `tolerance = 1e-4` and converge faster.
 
-If you need translation and rotation tolerances separately, run the
+For separate translation and rotation tolerances, run the
 solve once and then check `result.error.head<3>()` (angular) and
-`result.error.tail<3>()` (linear) against your own thresholds.
+`result.error.tail<3>()` (linear) against application-specific thresholds.
 
 ## Random-restart wrapper sketch
 
-Here's a robust IK call you'd write around the library's solver:
+A robust IK call wrapped around the library's solver:
 
 ```cpp
 tinyspatial::IkResult solve_ik_with_restarts(
@@ -123,15 +123,16 @@ the search?). Easy to write, hard to make canonical.
 
 ## Debugging an IK failure
 
-When `solve_ik_dls` returns `converged = false`, here's a recipe:
+When `solve_ik_dls` returns `converged = false`, a useful recipe:
 
-1. **Look at `result.error`.** Is it dominated by the angular or linear
-   part? If angular, your rotation target may be far from reachable
-   geometry; if linear, your translation target may be too far.
+1. **Look at `result.error`.** Determine whether it is dominated by the
+   angular or linear part. If angular, the rotation target may be far
+   from reachable geometry; if linear, the translation target may be too
+   far.
 
 2. **Run again with `max_iters = 1000` and print iteration-by-iteration
-   error magnitudes.** If they're monotonically decreasing but slowly,
-   you're fine — just need more iterations. If they plateau, you're in
+   error magnitudes.** Magnitudes that decrease monotonically but slowly
+   indicate the solve simply needs more iterations. A plateau indicates
    a local minimum.
 
 3. **Print the singular values of `J` at the final `q`.** In numpy after
@@ -140,21 +141,21 @@ When `solve_ik_dls` returns `converged = false`, here's a recipe:
    sigmas = np.linalg.svd(J, compute_uv=False)
    print(sigmas[-1] / sigmas[0])  # condition number-ish
    ```
-   If the ratio is `< 1e-6`, you're near a singularity.
+   A ratio `< 1e-6` indicates proximity to a singularity.
 
-4. **Try a different `q_init`.** The simplest non-trivial change. Often
-   the *only* fix needed.
+4. **Try a different `q_init`.** The simplest non-trivial change, and
+   often the *only* fix needed.
 
-5. **Bump `damping`.** If the issue is singularity-induced instability,
-   `5e-2` is the next thing to try.
+5. **Bump `damping`.** For singularity-induced instability, `5e-2` is the
+   next value to try.
 
 ## What the library does *not* do
 
 - **No constraint handling.** Joint limits, self-collision, environment
   collision — all silently ignored. The solution $q^*$ may push joints
   past their physical limits.
-- **No multi-target / pose-and-orientation prioritisation.** You get
-  one full $\mathrm{SE}(3)$ pose target.
+- **No multi-target / pose-and-orientation prioritisation.** The solver
+  accepts one full $\mathrm{SE}(3)$ pose target.
 - **No global solver.** No genetic algorithms, no IKFast-style
   closed-form generation, no neural-network IK. Just iterative DLS.
 
@@ -164,11 +165,11 @@ libraries (MoveIt, Drake) are the next step up.
 
 ## TL;DR
 
-- Use DLS as your default.
-- Wrap it with random restarts for production use.
-- If it oscillates near a configuration, bump `damping`.
-- If it stops short of tolerance, try a different seed or relax `tolerance`.
-- If it's structurally unreachable, IK can't help you — check your geometry.
+- DLS is the default solver.
+- For production use, wrap it with random restarts.
+- Oscillation near a configuration calls for higher `damping`.
+- A solve that stops short of tolerance calls for a different seed or a relaxed `tolerance`.
+- A structurally unreachable target is beyond IK — verify the geometry.
 
 > ## Where this lives in the library
 >

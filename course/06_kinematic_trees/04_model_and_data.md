@@ -3,14 +3,14 @@
 `tinyspatial` splits robot information into two objects:
 
 - **`Model`** holds everything *constant* about a robot — the topology, the
-  joint placements, the link inertias, the names. You build it once (usually
-  from a URDF) and then read from it forever.
+  joint placements, the link inertias, the names. It is built once (usually
+  from a URDF) and read from thereafter.
 - **`Data`** holds everything *per-configuration* — the link poses, the
-  velocities, the accelerations, the wrenches. It's the scratchpad an
+  velocities, the accelerations, the wrenches. It is the scratchpad an
   algorithm fills in given a `(q, v, a)`.
 
 This mirrors Pinocchio exactly and is one of the most important shapes in
-the library to internalise.
+the library.
 
 ## Why split them?
 
@@ -25,8 +25,8 @@ Data is the bug; sharing the Model is the design.
 ### 2. Allocation budget
 
 Algorithms run a lot — RNEA might be evaluated thousands of times a second.
-Allocating the storage every call would dominate the runtime. By giving the
-caller a Data they reuse, we move the allocation to construction time and the
+Allocating the storage every call would dominate the runtime. Handing the
+caller a Data to reuse moves the allocation to construction time, and the
 hot path becomes pure arithmetic on pre-sized buffers.
 
 ```cpp
@@ -58,8 +58,8 @@ algorithm. RNEA writes into `v`, `a`, and `f`. Forward kinematics writes into
 `pose_in_parent` and `pose_in_world`. CRBA uses `pose_in_parent` and writes
 elsewhere. Algorithms are pure functions over `(Model, q, Data&)`.
 
-> If you've read Pinocchio: these are exactly their `liMi`, `oMi`, `v`, `a`,
-> `f`. The names are docstring-equivalent.
+> For readers familiar with Pinocchio: these are exactly its `liMi`, `oMi`,
+> `v`, `a`, `f`. The names are docstring-equivalent.
 
 ## What goes where, the short list
 
@@ -71,14 +71,14 @@ elsewhere. Algorithms are pure functions over `(Model, q, Data&)`.
 | "What's body 2's inertia?" | `Model::inertia[2]` |
 | "What torque do the motors need?" | filled into `Data::f` by RNEA (chapter 10) |
 
-## A sanity check
+## How later chapters build on this
 
-The Model/Data split is the first hint of how all the chapters that follow
-will be structured. Forward kinematics (chapter 08) will be a one-line loop
-that fills `Data::pose_in_world` from `Model::placement` and `Model::joints`.
-RNEA (chapter 10) will be a two-line loop (forward then backward sweep)
-filling `Data::v`, `a`, and `f`. Every algorithm becomes a short, readable
-recipe because the data layout already did the hard work.
+The Model/Data split sets the structure for all the chapters that follow.
+Forward kinematics (chapter 08) is a one-line loop that fills
+`Data::pose_in_world` from `Model::placement` and `Model::joints`. RNEA
+(chapter 10) is a two-line loop (forward then backward sweep) filling
+`Data::v`, `a`, and `f`. Every algorithm becomes a short, readable recipe
+because the data layout already did the hard work.
 
 ## Where this lives in the library
 

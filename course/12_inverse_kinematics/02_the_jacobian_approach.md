@@ -66,7 +66,7 @@ J^+ \;=\; J^\top (J J^\top)^{-1}.
 $$
 
 It produces the *minimum-norm* $\delta q$ that satisfies $J \delta q
-= e$. That's a property we'll often want.
+= e$ — an often-desirable property.
 
 ## The whole loop
 
@@ -84,16 +84,16 @@ for iter in range(max_iters):
 
 Five lines of math. The hard parts are:
 
-- **What if $J$ is singular?** Damping (next sub-chapter).
-- **What if we're far from the target?** Step-size and damping
+- **A singular $J$.** Handled by damping (next sub-chapter).
+- **Being far from the target.** Handled by step-size and damping
   together (also next sub-chapter).
-- **What if we get stuck?** Random restart (sub-chapter 06).
+- **Getting stuck.** Handled by random restart (sub-chapter 06).
 
 ## Why the *local* Jacobian
 
-We use the LOCAL frame for both the error and the Jacobian. That's not
-the only choice — you can do the same algorithm with the WORLD frame —
-but LOCAL has a clean interpretation:
+The library uses the LOCAL frame for both the error and the Jacobian.
+This is not the only choice — the same algorithm works with the WORLD
+frame — but LOCAL has a clean interpretation:
 
 > *The error $e$ is the body-frame twist that would take body $L$ to
 > the target in unit time. The Jacobian $J_L$ maps joint velocities to
@@ -103,9 +103,9 @@ So "solve $J \delta q = e$" reads as: "find the joint velocity that
 produces this body-frame twist." A clean physical meaning.
 
 WORLD-frame IK is equivalent and gives the same final $q^*$, just with
-different intermediate steps. We use LOCAL because the error definition
-is more natural and because all the library's existing Jacobian code
-defaults to LOCAL.
+different intermediate steps. LOCAL is the choice here because the error
+definition is more natural and because all the library's existing
+Jacobian code defaults to LOCAL.
 
 ## What about the gradient of the squared error?
 
@@ -122,8 +122,8 @@ at all.
 
 This is the **Jacobian transpose method**. It always makes progress
 (every step reduces the squared error along the gradient), but it
-converges *linearly* and very slowly. Useful as a fallback near
-singularities, but you don't want to use it as the only method.
+converges *linearly* and very slowly. It is useful as a fallback near
+singularities, but unsuitable as the only method.
 
 Pinocchio and most other libraries use it as a starting move when the
 DLS step would blow up. The library's current DLS implementation doesn't
@@ -132,8 +132,7 @@ implicitly: when $\lambda^2$ dominates $J J^\top$, the DLS step
 $\delta q = J^\top (J J^\top + \lambda^2 I)^{-1} e$ approaches
 $\lambda^{-2} \cdot J^\top e$ — a scaled Jacobian-transpose step.
 
-That's actually a *very* nice property of DLS that we'll come back to in
-the next sub-chapter.
+This is a notable property of DLS, revisited in the next sub-chapter.
 
 > ## Where this lives in the library
 >

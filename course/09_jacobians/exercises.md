@@ -24,7 +24,7 @@ std::cout << J << "\n";
 joint 0 axis is z. From link 1's frame at q=0 (placed +x by 1 from joint 0,
 no rotation), the screw axis of joint 0 has angular = (0, 0, 1) and linear =
 (t × ω) at link 1's origin. Here t = (-1, 0, 0) (link 1 is +x from joint 0,
-so joint 0 is at -1 from link 1's perspective)… work it out and compare.
+so joint 0 is at -1 from link 1's perspective)… work it out and compare against the printed matrix.
 </details>
 
 ## 2. Frame conversion by hand
@@ -36,7 +36,7 @@ For a `simple_arm` configuration where the link 1 frame happens to have
 (b) The 6×6 full adjoint that converts LOCAL → WORLD (translation of link 1
 is (0, 1, 0), say).
 
-Apply each to your LOCAL Jacobian column 0 from exercise 1 and check by
+Apply each to the LOCAL Jacobian column 0 from exercise 1 and check by
 calling `compute_jacobian` with the other two frames.
 
 ## 3. Drop a rank
@@ -60,9 +60,9 @@ order? And which order is `J_ts · q_dot`?
 
 ## 5. A wrong "obvious" implementation
 
-Imagine you compute the WORLD Jacobian column-by-column by *just rotating
+Consider computing the WORLD Jacobian column-by-column by *just rotating
 each LOCAL column with `R_link_world`*. Show that this is wrong, and write
-down which term you've omitted. (Hint: the $[t]_\times R$ block of the
+down which term is omitted. (Hint: the $[t]_\times R$ block of the
 adjoint.) Then run a test: load `ur5e` at some random `q`, compute
 LOCAL J, naively rotate to "world", compare with `compute_jacobian(..., kWorld)`,
 and observe the linear rows are off.

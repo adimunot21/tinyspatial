@@ -10,7 +10,7 @@ Inverse kinematics goes the other way. Given a desired pose $T^*$ for
 some link of the robot, find a configuration $q^*$ such that
 $\mathrm{FK}(q^*) = T^*$.
 
-That's harder than it sounds:
+This is harder than it sounds:
 
 1. **Many or no solutions.** A 7-DoF arm can reach the same point with
    the elbow up *or* the elbow down (and any of infinitely many
@@ -22,10 +22,10 @@ That's harder than it sounds:
    Jacobian loses rank, and the standard inverse-Jacobian methods
    explode.
 
-This chapter teaches the **iterative Jacobian-based** family of IK
-algorithms — the workhorses of robotics. They're not the only family
+This chapter covers the **iterative Jacobian-based** family of IK
+algorithms — the workhorses of robotics. They are not the only family
 (closed-form, sampling-based, optimisation-based all exist), but they
-match what we have in `include/tinyspatial/ik/`:
+match what the library provides in `include/tinyspatial/ik/`:
 
 - **DLS** (damped least-squares): the entry-level robust solver.
 - **Nullspace IK**: DLS plus a secondary objective for redundant arms.
@@ -33,7 +33,7 @@ match what we have in `include/tinyspatial/ik/`:
 ## The sub-chapters
 
 1. [The inverse problem](01_the_inverse_problem.md) — formal statement;
-   why it's underdetermined; how to even *write down* the error on a Lie
+   why it's underdetermined; how to *write down* the error on a Lie
    group.
 2. [The Jacobian approach](02_the_jacobian_approach.md) — Newton-Raphson
    on $\mathrm{SE}(3)$ Lie-tangent error.

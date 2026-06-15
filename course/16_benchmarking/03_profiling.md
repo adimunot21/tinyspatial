@@ -1,10 +1,10 @@
 # Profiling with `perf` and callgrind
 
-A benchmark tells you *how much* time you spent. A profiler tells you
-*where* you spent it. The two together are the optimisation toolkit.
+A benchmark reports *how much* time was spent. A profiler reports
+*where* it was spent. The two together are the optimisation toolkit.
 
-We'll cover two profilers: `perf` (Linux hardware counter sampling, low
-overhead) and Valgrind's `callgrind` (instruction-level instrumentation,
+This chapter covers two profilers: `perf` (Linux hardware counter sampling,
+low overhead) and Valgrind's `callgrind` (instruction-level instrumentation,
 high overhead but exact).
 
 ## `perf` — the lightweight profiler
@@ -12,7 +12,7 @@ high overhead but exact).
 `perf` reads Linux's perf-events subsystem to sample the running program
 every few thousand cycles and record where it was. Total overhead: ~1%.
 
-### The five `perf` commands you need
+### Five essential `perf` commands
 
 ```bash
 # 1. Count total instructions, cycles, branch mispredicts, cache misses.
@@ -60,7 +60,7 @@ What to look at:
   is suspicious. Indirect calls through a `std::variant` visitor are a
   common cause.
 - **`page-faults`** — should be near zero for a steady-state benchmark.
-  Lots of page faults = you're allocating in the hot loop.
+  Lots of page faults = allocation is happening in the hot loop.
 
 ### `perf record` and `perf report`
 
@@ -81,16 +81,16 @@ shows a tree of where the samples landed:
      ...
 ```
 
-Each row tells you "X% of all CPU cycles were spent inside this
-function." If you can speed up the function at the top, you'd cut total
-time by close to that percentage. (Famously: don't bother optimising
-something at 0.1% — even infinite speedup saves 0.1%.)
+Each row states "X% of all CPU cycles were spent inside this
+function." Speeding up the function at the top cuts total
+time by close to that percentage. (Famously: optimising
+something at 0.1% is not worth it — even infinite speedup saves 0.1%.)
 
 ### The `perf_event_paranoid` gotcha
 
 On Ubuntu 22+ the default `/proc/sys/kernel/perf_event_paranoid` is
 either 3 or 4, both of which block per-process performance counters for
-unprivileged users. You'll see:
+unprivileged users. The symptom:
 
 ```
 Access to performance monitoring and observability operations is limited.
@@ -109,14 +109,14 @@ sudo sh -c 'echo "kernel.perf_event_paranoid = 1" > /etc/sysctl.d/99-perf.conf'
 sudo setcap cap_perfmon=ep ./bench_rnea
 ```
 
-On a machine where you hold sudo, the temporary `perf_event_paranoid`
+On a machine with sudo access, the temporary `perf_event_paranoid`
 setting is the easiest fix when profiling access is needed.
 
 ## Callgrind — the slow, exact profiler
 
-`callgrind` is part of Valgrind. It runs your code inside a virtual machine
+`callgrind` is part of Valgrind. It runs the code inside a virtual machine
 and records every instruction executed. The overhead is **~20–50×**, but
-the data is precise: you see exact call counts and per-instruction
+the data is precise: it reports exact call counts and per-instruction
 breakdowns.
 
 ```bash
@@ -143,7 +143,7 @@ kcachegrind callgrind.out.<pid>
 ```
 
 Beautiful call tree, source/assembly annotation side-by-side, sortable
-by self vs cumulative cost. If you have an X server (or X forwarding),
+by self vs cumulative cost. Given an X server (or X forwarding),
 this is by far the nicest profiling experience on Linux.
 
 ### Why use callgrind when `perf` exists
@@ -171,7 +171,7 @@ report` to find the top 5 hot functions, then dropped into callgrind for
 the inner loop of RNEA when we wanted to know exactly which lines were
 expensive.
 
-## What you'll typically find
+## What profiling typically reveals
 
 Real RNEA / FK profiling on the current `tinyspatial` codebase shows:
 
@@ -182,7 +182,7 @@ Real RNEA / FK profiling on the current `tinyspatial` codebase shows:
 2. **`SO3::act(point)` quaternion-vector product** — quaternions are
    compact (4 doubles vs 9 for a matrix) but acting on a vector costs
    ~30 floating-point ops vs 9 for a matrix multiply. The right tradeoff
-   depends on how many times you act per stored rotation; for FK each
+   depends on how many acts occur per stored rotation; for FK each
    joint frame is acted on ~5 times per call, so caching a matrix wins.
 3. **`Eigen::Quaternion::operator*`** — composing two rotations is
    ~28 ops on quaternions, slightly cheaper than the ~36 ops on

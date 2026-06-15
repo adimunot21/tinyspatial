@@ -3,7 +3,7 @@
 `include/tinyspatial/algo/aba.hpp` is the densest of the dynamics
 algorithms — three passes, six per-body scratch vectors — but each step
 maps directly onto the chapter-03 formulas. This sub-chapter walks through
-it.
+the implementation.
 
 ## The signature
 
