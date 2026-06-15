@@ -30,12 +30,12 @@ time, blocking the optimiser.
 `std::visit` over a variant does the dispatch at **compile time**. The
 optimiser can see "this branch is a `JointRevolute`," inline the
 `exp(axis * q)` math, and generate tight code. The four types together
-total a few hundred bytes; you store them by value in `std::vector<Joint>`
+total a few hundred bytes; they are stored by value in `std::vector<Joint>`
 without any allocator drama.
 
 ## The free-function interface
 
-Most code shouldn't even *see* the variant. We expose three free functions
+Most code never *sees* the variant. The library exposes three free functions
 that hide the visit:
 
 ```cpp
@@ -53,8 +53,8 @@ global vectors into per-joint pieces.
 
 ## `JointFloating` and the configuration layout
 
-This is the one place where the configuration storage matters. We follow
-Pinocchio:
+This is the one place where the configuration storage matters. The library
+follows Pinocchio:
 
 ```
 q = (t_x, t_y, t_z,  q_x, q_y, q_z, q_w)   // 7 numbers
@@ -63,25 +63,24 @@ v = (ω_x, ω_y, ω_z,  v_x, v_y, v_z)        // 6 numbers, angular-first
 
 The translation is plain. The quaternion is stored *scalar-last*
 (`q_w` at index 6), matching most URDF / ROS conventions. The velocity
-honours our angular-first convention from chapter 04.
+honours the angular-first convention from chapter 04.
 
-You will eventually need to *integrate* a velocity into a configuration —
-that's `q ← q ⊕ v` for a small `v`. For the floating joint that step is more
-than addition (you have to integrate the quaternion correctly). The
-ingredients are exactly what `SO3::exp` and `SE3::exp` give you, and the IK
-chapter (12) will wire it up.
+*Integrating* a velocity into a configuration — `q ← q ⊕ v` for a small `v` —
+is required eventually. For the floating joint that step is more than addition:
+the quaternion must be integrated correctly. The ingredients are exactly what
+`SO3::exp` and `SE3::exp` provide, and the IK chapter (12) wires it up.
 
 ## What's *not* in the variant
 
-URDF supports a few more joint types we don't model:
+URDF supports a few more joint types the library does not model:
 
 - `planar` — 3 DOF in a plane. Rare in practice and decomposable.
 - `screw` (helical) — coupled rotation and translation. Niche.
 - `mimic` — one joint copies another's value. A composition layer, not a
   primitive; the loader rejects it.
 
-If you need one, add it to the variant and to `joint_transform`'s
-`if constexpr` ladder. The change is local; no algorithm cares beyond that.
+Adding one means extending the variant and `joint_transform`'s `if constexpr`
+ladder. The change is local; no algorithm cares beyond that.
 
 ## Where this lives in the library
 

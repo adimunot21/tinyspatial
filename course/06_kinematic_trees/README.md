@@ -1,9 +1,9 @@
 # Chapter 06 — Kinematic trees
 
-A robot, for our purposes, is a *tree of rigid bodies connected by joints*.
-Chapter 01 gave you that picture in words. This chapter turns the picture into
-a precise data structure — the `Model` — that every algorithm in the library
-will consume.
+A robot, for the purposes of this library, is a *tree of rigid bodies connected
+by joints*. Chapter 01 presented that picture in words. This chapter turns the
+picture into a precise data structure — the `Model` — that every algorithm in
+the library consumes.
 
 ## The sub-chapters
 
@@ -20,9 +20,8 @@ Then: [exercises](exercises.md).
 
 ## Prerequisites
 
-Chapters 03–05 (rotations, Lie groups, spatial algebra). If you skipped 05,
-come back after Featherstone's vocabulary clicks — it's the language Model
-will speak.
+Chapters 03–05 (rotations, Lie groups, spatial algebra). Chapter 05 is
+load-bearing: Featherstone's vocabulary is the language Model speaks.
 
 ## Where this lives in the library
 

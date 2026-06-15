@@ -1,8 +1,8 @@
 # Links and joints, in code
 
 A **link** is a rigid body — a piece of metal that doesn't bend. A **joint**
-is the constrained motion between two adjacent links. Every algorithm we'll
-write is a recipe for walking links and joints and doing a small piece of
+is the constrained motion between two adjacent links. Every algorithm in the
+library is a recipe for walking links and joints and doing a small piece of
 arithmetic at each.
 
 ## What a link stores
@@ -24,9 +24,9 @@ There's no separate "Link" class. Every link in a tree is associated with
 exactly one inbound joint (the joint that connects it to its parent), so the
 link data lives in the same parallel arrays as the joint data.
 
-> **Why no Link class?** Because every link can be uniquely identified by its
-> inbound joint index, and algorithms iterate over joints — never over "free"
-> links. Adding a Link wrapper would buy nothing and force two indirections.
+> **Why no Link class?** Every link is uniquely identified by its inbound joint
+> index, and algorithms iterate over joints — never over "free" links. A Link
+> wrapper would buy nothing and force two indirections.
 
 ## What a joint stores
 
@@ -41,7 +41,7 @@ it constrains motion — and nothing else:
 
 In addition, the `Model` stores a **placement** per joint — an SE(3) that
 positions the joint frame in its parent link's frame. This is the joint's
-"resting pose", what you'd read straight out of the URDF `<origin>` tag.
+"resting pose", read straight out of the URDF `<origin>` tag.
 
 The full child-frame-in-parent transform at a given configuration `q` is
 
@@ -57,8 +57,8 @@ quaternion) and builds an SE(3).
 
 ## Why separating placement from joint_transform matters
 
-If the placement is *fixed* in the URDF and the joint variable is *what
-changes*, separating them lets us:
+The placement is *fixed* in the URDF and the joint variable is *what changes*.
+Separating them allows the library to:
 
 - store the placement once and not recompute it,
 - swap the joint type without re-deriving the placement,

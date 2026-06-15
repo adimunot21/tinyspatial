@@ -1,10 +1,10 @@
 # Chapter 08 — Forward kinematics
 
-You have a robot — a `Model` from chapter 06 — and you set its joints to some
-configuration `q`. Where does the gripper end up? Where does each link sit in
-the world? **Forward kinematics** is the function that answers that, and it's
-the simplest algorithm in this whole library: one loop, ten lines, exact at
-machine precision.
+Given a robot — a `Model` from chapter 06 — with its joints set to some
+configuration `q`, where does the gripper end up? Where does each link sit in
+the world? **Forward kinematics** is the function that answers that. It is the
+simplest algorithm in the library: one loop, ten lines, exact at machine
+precision.
 
 ## The sub-chapters
 

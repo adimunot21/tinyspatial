@@ -13,7 +13,7 @@ $$
 is exactly $\delta q^* = J^\top (J J^\top + \lambda^2 I)^{-1} e$. Use the
 *matrix inversion lemma* (Woodbury identity).
 
-> *Hint:* set $\nabla \Phi = 0$ and solve. You'll need to manipulate
+> *Hint:* set $\nabla \Phi = 0$ and solve. Manipulate
 > $(J^\top J + \lambda^2 I)^{-1} J^\top$ into the right-pseudoinverse
 > form.
 
@@ -27,13 +27,13 @@ $$
 e \;=\; \log_{\mathrm{SE}(3)}\!\bigl(T_{\mathrm{current}}^{-1} T_{\mathrm{target}}\bigr).
 $$
 
-What changes if you use the *world-frame* error
+What changes if the *world-frame* error
 
 $$
 e' \;=\; \log_{\mathrm{SE}(3)}\!\bigl(T_{\mathrm{target}} T_{\mathrm{current}}^{-1}\bigr)
 $$
 
-instead? Which Jacobian frame goes with it? Verify the two solvers
+is used instead? Which Jacobian frame goes with it? Verify the two solvers
 produce the same final $q^*$ (they should — the choice of frame is just
 a convention) by writing a quick test that solves IK both ways on
 `franka_fr3.urdf`.

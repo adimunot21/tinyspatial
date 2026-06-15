@@ -1,7 +1,7 @@
 # Reading the parity table
 
-Open [`docs/PINOCCHIO_PARITY.md`](../../docs/PINOCCHIO_PARITY.md). You'll
-see something like this:
+Open [`docs/PINOCCHIO_PARITY.md`](../../docs/PINOCCHIO_PARITY.md). It
+contains something like this:
 
 ```
 | Robot         | FK         | J (LOCAL)  | J (WORLD)  | J (LWA)   |
@@ -82,8 +82,8 @@ in the inward pass, plus solving a small linear system. The noise
 accumulates faster.
 
 The fact that this number is sitting at `1e-12` rather than `1e-10`
-tells you it's *just* FP noise — not a convention bug. If you saw
-`1e-7`, you'd worry.
+indicates *just* FP noise — not a convention bug. A value of `1e-7`
+would be cause for concern.
 
 ## A field-by-field tour
 
@@ -178,10 +178,10 @@ subset that exercises the *public Python API* end-to-end. Run that
 during binding development; run the full `test_kinematics.py` after any
 algorithm change.
 
-## What this discipline gets you
+## What this discipline provides
 
-Every PR comment that says "I'm not sure my implementation is right" can
-be answered with: "Did the parity test pass? Then it's right."
+Every PR comment that says "the implementation might be wrong" has a
+direct answer: a passing parity test means the numerics are right.
 
 Every reviewer who needs to gut-check a change reads the
 `PINOCCHIO_PARITY.md` diff to see the actual numerical impact.
@@ -189,10 +189,10 @@ Every reviewer who needs to gut-check a change reads the
 Every reader who wants to know how trustworthy the library is opens
 the committed table and sees `1e-13 to 1e-15`.
 
-That last one is the credibility signal. Hiring managers reading this
-repo see "parity to 1e-13 with Pinocchio on 1000 configurations" and
-form a fundamentally different opinion than they would from a README
-that says "we tested it on a few configurations."
+That last one is the credibility signal. A reviewer reading this
+repo sees "parity to 1e-13 with Pinocchio on 1000 configurations" and
+forms a fundamentally different opinion than they would from a README
+that says "tested on a few configurations."
 
 The numbers are not the test; the *commitment* to the numbers is.
 

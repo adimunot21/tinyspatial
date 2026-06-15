@@ -1,17 +1,17 @@
 # Chapter 11 — ABA and CRBA
 
 Chapter 10 solved *inverse* dynamics: given a desired motion $(q, \dot q,
-\ddot q)$, what torque $\tau$ must the motors produce? Here we solve the
-two complementary problems:
+\ddot q)$, what torque $\tau$ must the motors produce? This chapter solves
+the two complementary problems:
 
 1. **Forward dynamics** — given $\tau$ at each motor and the current $(q,
    \dot q)$, what acceleration $\ddot q$ results? This is the *simulator's*
-   problem: every physics step, you have torques and you want to integrate
-   forward.
+   problem: every physics step starts from torques and integrates forward.
 
-2. **The mass matrix $M(q)$** — sometimes you really do want the joint-space
-   inertia in closed form. For instance: stability analysis of a controller,
-   detection of dynamics-singularities, projection onto contact constraints.
+2. **The mass matrix $M(q)$** — the joint-space inertia in closed form is
+   sometimes required directly. For instance: stability analysis of a
+   controller, detection of dynamics-singularities, projection onto contact
+   constraints.
 
 Two algorithms; both due to Featherstone; both $O(n)$ on a tree.
 
@@ -21,16 +21,16 @@ Two algorithms; both due to Featherstone; both $O(n)$ on a tree.
 
 - **CRBA** (the *Composite-Rigid-Body Algorithm*) is the workhorse: it
   computes $M(q)$ directly in $O(n^2)$, which is asymptotically worse than
-  ABA but easier to reason about. Often you want $M$ for its own sake.
+  ABA but easier to reason about. $M$ is often needed for its own sake.
 
 The two together — $M$ from CRBA and the bias $h(q, \dot q) := C \dot q + g$
-from RNEA with $\ddot q = 0$ — give you the long way to forward dynamics:
+from RNEA with $\ddot q = 0$ — give the long way to forward dynamics:
 $\ddot q = M^{-1}(\tau - h)$. ABA computes the same thing in one sweep.
 
 ## The sub-chapters
 
 1. [Forward vs inverse dynamics](01_forward_vs_inverse.md) — what each
-   problem looks like and when you'd want which.
+   problem looks like and when each applies.
 2. [Composite rigid bodies (CRBA)](02_crba.md) — the idea of "the inertia of
    everything below this joint, seen at this joint."
 3. [Articulated bodies (ABA)](03_aba.md) — Featherstone's clever

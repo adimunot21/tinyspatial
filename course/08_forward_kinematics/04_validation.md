@@ -1,7 +1,7 @@
 # Validating against Pinocchio
 
-Up to here we've been writing code that *looks* right. Now we ask the harder
-question: **is it right against the reference?**
+The preceding chapters produced code that *looks* right. The harder question
+remains: **is it right against the reference?**
 
 Open [`docs/PINOCCHIO_PARITY.md`](../../docs/PINOCCHIO_PARITY.md). The number
 that matters for forward kinematics is the **FK max-abs diff** column. On
@@ -27,13 +27,13 @@ the implementation delivers "within machine precision."
 
 ## Why this is the right test, not just a victory lap
 
-It's tempting to think the FK code is so simple it doesn't need cross-checking.
-Two things would have failed silently without this harness:
+The FK code looks too simple to need cross-checking. Two things would have
+failed silently without this harness:
 
-1. **A rotation convention mismatch.** If our `<origin rpy>` interpretation
+1. **A rotation convention mismatch.** If the `<origin rpy>` interpretation
    disagreed with Pinocchio's by an `Rxyz` vs `Rzyx` ordering, every random
-   `q` would produce a different pose. The `1e-15` agreement says we got the
-   convention right.
+   `q` would produce a different pose. The `1e-15` agreement confirms the
+   convention is right.
 
 2. **A composition order mismatch.** Multiplying `parent * local` vs
    `local * parent` is the difference between "rotate then translate" and
@@ -48,7 +48,7 @@ derivative of FK, so it can only be that close if FK is also correct. The
 two columns being simultaneously at machine precision is independent
 evidence the whole stack is right.
 
-## Running it yourself
+## Running it
 
 ```bash
 # One-time: install the Python deps into the project venv.
@@ -59,10 +59,10 @@ cmake --build build/validation -j
 ctest --preset=validation -L pinocchio_parity --output-on-failure
 ```
 
-The same test re-runs every time you touch FK or Jacobian code. If a future
+The same test re-runs every time FK or Jacobian code changes. If a future
 refactor introduces a sign-flip or a wrong matrix transpose, the harness
 fails *immediately* instead of months later when an integrator silently
-diverges. That's the whole point.
+diverges. That is the whole point.
 
 ## Where this lives in the library
 

@@ -9,8 +9,8 @@ parent, but a parent can have any number of children.
 ## How we store the tree: parallel arrays
 
 The textbook way to store a tree is with pointers — each node holds a
-pointer-to-parent and a list-of-children. We don't do that. Instead, `Model`
-stores everything in **parallel arrays indexed by joint id**:
+pointer-to-parent and a list-of-children. The library does not do that.
+Instead, `Model` stores everything in **parallel arrays indexed by joint id**:
 
 ```cpp
 class Model {
@@ -28,35 +28,35 @@ Three reasons to prefer arrays-of-ints over pointers:
 1. **Cache locality.** The dynamics inner loop touches one field per joint
    along the whole chain; contiguous storage is twenty times faster than
    chasing pointers.
-2. **Trivial serialization.** No graph-with-cycles puzzle when you save a
-   Model to a file.
+2. **Trivial serialization.** No graph-with-cycles puzzle when a Model is saved
+   to a file.
 3. **Algorithms become for-loops.** `for (int i = 1; i < n; ++i)` over a
    topologically-ordered array is the cleanest possible expression of "do
    something to every joint in outbound order."
 
-The cost is one indirection: to get "joint i's parent's data," you write
-`x[parent[i]]`. That's a small price.
+The cost is one indirection: "joint i's parent's data" is `x[parent[i]]`. That
+is a small price.
 
 ## Topological order
 
-We require `parent[i] < i` for every joint `i`. That means walking joints in
-index order is automatically a **breadth-first / depth-first** outbound
-traversal: by the time you process joint `i`, joint `parent[i]` is already
-done. Going inbound (from leaves toward root) is just the same loop run
+The library requires `parent[i] < i` for every joint `i`. Walking joints in
+index order is therefore automatically a **breadth-first / depth-first**
+outbound traversal: by the time joint `i` is processed, joint `parent[i]` is
+already done. Going inbound (from leaves toward root) is the same loop run
 backwards.
 
 This invariant is established at construction time. `add_joint()` returns the
-new joint's index and refuses any `parent_idx >= njoints()`, so you can't
-violate the order by accident. The URDF loader produces topologically
-ordered joints by walking the link graph BFS-from-root.
+new joint's index and refuses any `parent_idx >= njoints()`, so the order
+cannot be violated by accident. The URDF loader produces topologically ordered
+joints by walking the link graph BFS-from-root.
 
 ## Roots and the world frame
 
 Most arms have one root joint (the joint connecting the base to the world).
 A floating-base humanoid has *one* root joint of type `JointFloating`.
 A multi-armed system on a fixed base might have several root joints,
-all with `parent == -1`. We do not include a separate "universe" joint;
-the world frame is the implicit parent of every root.
+all with `parent == -1`. The library does not include a separate "universe"
+joint; the world frame is the implicit parent of every root.
 
 ## Walking the tree
 
@@ -69,9 +69,9 @@ for (int i = 0; i < model.njoints(); ++i) {
 }
 ```
 
-That's it. Pinocchio's algorithms are largely this loop with one or two extra
-lines per iteration. The same shape (forward, then backward) is the bones of
-RNEA, ABA, CRBA in chapters 10–11.
+That is the whole pattern. Pinocchio's algorithms are largely this loop with
+one or two extra lines per iteration. The same shape (forward, then backward)
+is the bones of RNEA, ABA, CRBA in chapters 10–11.
 
 ## Where this lives in the library
 

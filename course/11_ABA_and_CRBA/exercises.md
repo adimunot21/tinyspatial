@@ -11,9 +11,9 @@ For `simple_arm.urdf` at $q = 0$:
 - Link 2: same; joint 2 is at $(1, 0, 0)$ in link 1's frame.
 - Both joints rotate about $z$.
 
-Compute $M(0)$ by hand using the composite-inertia recursion. You should
-get a $2 \times 2$ symmetric positive-definite matrix; the $M_{11}$ entry
-should be larger than $M_{22}$ (link 1 carries both link masses, link 2
+Compute $M(0)$ by hand using the composite-inertia recursion. The result
+is a $2 \times 2$ symmetric positive-definite matrix; the $M_{11}$ entry
+is larger than $M_{22}$ (link 1 carries both link masses, link 2
 carries only itself).
 
 Verify with `ts.crba(model, np.zeros(2))`.
@@ -31,9 +31,9 @@ $$
 is *structurally* true — not just a numerical coincidence.
 
 Sketch why this must be true, treating $M, h$ as known black-box outputs
-of CRBA and RNEA respectively. (You don't need to derive ABA's
-formula from scratch — just argue that *if* ABA is correctly solving
-forward dynamics, then composing with RNEA gives identity.)
+of CRBA and RNEA respectively. (Deriving ABA's formula from scratch is not
+required — argue only that *if* ABA correctly solves forward dynamics, then
+composing with RNEA gives identity.)
 
 ---
 
@@ -48,7 +48,7 @@ Write a Python script that does the following for `franka_fr3.urdf`:
 4. Plot the histogram of $\| \ddot q_{\mathrm{ABA}} - \ddot q_{\text{long}}
    \|_\infty$ across the 100 samples.
 
-What does the spread of the histogram tell you about ABA's numerical
+What does the spread of the histogram reveal about ABA's numerical
 behaviour vs the explicit-inverse formulation?
 
 ---
@@ -64,7 +64,7 @@ masses, unit lengths, $q = 0$). Compute by hand:
 3. Transport it into joint 1's frame and add joint 1's own inertia: that's
    $I^A_1$ before its own reduction.
 
-You should observe that $I^A_1$ has *less* effective inertia along the
+Observe that $I^A_1$ has *less* effective inertia along the
 $z$-axis than the composite inertia $I^c_1$ from CRBA. Why?
 
 > *Hint:* the "missing" inertia is exactly what's "absorbed" by joint
@@ -95,6 +95,6 @@ $O(n)$ for serial chains. Predict (in floating-point operations per call):
 - Approximate FLOP count for ABA on a 7-DoF arm.
 - Approximate FLOP count for CRBA + RNEA + dense-LDLT solve on the same.
 
-Then time both on `franka_fr3` using `bench_rnea` as a starting point (you
-can add a `bench_aba` and `bench_crba`). How does your back-of-envelope
+Then time both on `franka_fr3` using `bench_rnea` as a starting point
+(add a `bench_aba` and `bench_crba`). How does the back-of-envelope
 estimate compare to reality?

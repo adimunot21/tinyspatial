@@ -3,7 +3,7 @@
 CRBA computes the joint-space inertia matrix $M(q)$ directly. The
 core idea is one sentence:
 
-> *The inertia your motor at joint $i$ has to fight is the composite inertia
+> *The inertia the motor at joint $i$ has to fight is the composite inertia
 > of every body below it, transported into joint $i$'s frame, projected
 > onto joint $i$'s motion subspace.*
 

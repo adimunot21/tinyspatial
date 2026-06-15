@@ -1,8 +1,8 @@
 # 16 · Benchmarking
 
-You can't optimise what you can't measure. This chapter is about the
+Optimisation requires measurement. This chapter is about the
 discipline of measurement — what to measure, how to measure it, and how
-to *not* mislead yourself.
+to avoid being misled.
 
 The library's benchmark harness lives in [`benchmarks/`](../../benchmarks/),
 one file per algorithm family, all built with Google Benchmark. The
@@ -11,18 +11,18 @@ ratios against Pinocchio live in
 produces them is at
 [`python/tools/benchmark_vs_pinocchio.py`](../../python/tools/benchmark_vs_pinocchio.py).
 
-## What you'll learn
+## What this chapter covers
 
-- The difference between *latency*, *throughput*, and what each one tells
-  you.
+- The difference between *latency*, *throughput*, and what each one
+  indicates.
 - How to use Google Benchmark: `BENCHMARK_CAPTURE`, `state.SetItemsProcessed`,
   `DoNotOptimize`, and what those gymnastics are actually preventing.
-- Why micro-benchmarks lie, and the simple steps you can take to make
+- Why micro-benchmarks lie, and the simple steps that make
   them lie less (CPU pinning, warmup, removing allocations).
 - How to use `perf stat` and `callgrind` to find out *where* the time
   goes — not just how much there is.
-- The governing principle: **don't optimise blind**. Get
-  baselines in. Measure the change. Commit the result.
+- The governing principle: **don't optimise blind**. Establish
+  baselines. Measure the change. Commit the result.
 
 ## The chapters
 
@@ -38,7 +38,7 @@ produces them is at
 4. [The optimisation loop](04_optimisation_loop.md) — the discipline that
    keeps optimisation from being random thrashing. Measure → hypothesise
    → change → measure. With a worked example: the
-   `compute_joint_jacobians` per-call allocation we removed in Phase 9a.
+   `compute_joint_jacobians` per-call allocation removed in Phase 9a.
 
 ## Where this lives in the library
 

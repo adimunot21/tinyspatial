@@ -12,15 +12,14 @@ a single call.
 
 ## What FK is *not*
 
-The first time you meet FK it's easy to lump it together with two other things
-it isn't:
+FK is easily confused with two other things it is not:
 
 - **It's not** *inverse* kinematics. IK is the much harder problem
   "given a target pose, find a `q` that produces it" — there might be zero,
   one, or infinitely many solutions, and it requires iterative algorithms.
   FK has *exactly one* answer and is one matrix product per joint.
 - **It's not** the *Jacobian*. The Jacobian is the *derivative* of FK with
-  respect to `q`. We'll do that in chapter 09. FK alone is just a snapshot.
+  respect to `q`, covered in chapter 09. FK alone is just a snapshot.
 
 FK is purely geometry. No mass, no forces, no time. Just composition of rigid
 transforms along a tree.
@@ -38,9 +37,9 @@ Every other algorithm in `tinyspatial` builds on FK:
   evaluate FK, compute the error, descend via the Jacobian, repeat.
 
 So while FK looks trivial, getting it right (and fast) sets the ceiling on
-everything downstream. The Pinocchio cross-check in chapter 04 shows we agree
-with the reference library to about machine precision — that's the foundation
-the next four chapters are built on.
+everything downstream. The Pinocchio cross-check in chapter 04 shows agreement
+with the reference library to about machine precision — the foundation the next
+four chapters are built on.
 
 ## The one-paragraph summary
 

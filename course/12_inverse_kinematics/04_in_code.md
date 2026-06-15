@@ -36,8 +36,8 @@ struct DlsOptions {
 };
 ```
 
-Sensible defaults for a 6/7-DoF arm working in metres and radians. If
-you find yourself tuning these:
+Sensible defaults for a 6/7-DoF arm working in metres and radians. When
+tuning these:
 
 - `damping` smaller (e.g. `1e-3`) → tighter convergence, more risk near
   singularities.

@@ -1,9 +1,9 @@
 # 15 · Validating against Pinocchio
 
-You've written your own implementation of FK, RNEA, ABA, CRBA. How do you
-*know* it's right?
+A re-implementation of FK, RNEA, ABA, and CRBA raises one question: how can it
+be *known* to be correct?
 
-You could:
+The options:
 
 1. Write unit tests against hand-computed values. Works for a 2-DoF arm;
    intractable for a 7-DoF arm with random configurations.
@@ -15,15 +15,15 @@ You could:
 This library chooses option 3. The reference is **Pinocchio 3.9.0** —
 the de-facto standard rigid-body library in robotics research, maintained
 by INRIA. If `tinyspatial` and Pinocchio agree to machine precision on
-1000 random configurations of every fixture robot, then either we both
-have the same bug (unlikely — Pinocchio is heavily peer-reviewed and used
-in production) or we're both right.
+1000 random configurations of every fixture robot, then either both share
+the same bug (unlikely — Pinocchio is heavily peer-reviewed and used
+in production) or both are correct.
 
-This chapter is about the *discipline* of doing that comparison: how to
+This chapter covers the *discipline* of that comparison: how to
 set it up, what the convention mismatches look like, and how to read the
 output.
 
-## What you'll learn
+## Topics
 
 - Why "validate against an oracle" is the right pattern for a
   portfolio re-implementation, and what makes a good oracle.
@@ -48,8 +48,8 @@ output.
    story of "I thought it was a numerics bug; it was a convention
    difference."
 3. [Reading the parity table](03_reading_the_parity_table.md) — what each row
-   in `docs/PINOCCHIO_PARITY.md` means, what a 1e-13 vs 1e-15 error tells
-   you, the difference between "tolerance" and "noise floor," and the
+   in `docs/PINOCCHIO_PARITY.md` means, what a 1e-13 vs 1e-15 error indicates,
+   the difference between "tolerance" and "noise floor," and the
    anatomy of [`tests/validation/test_kinematics.py`](../../tests/validation/test_kinematics.py).
 
 ## Where this lives in the library

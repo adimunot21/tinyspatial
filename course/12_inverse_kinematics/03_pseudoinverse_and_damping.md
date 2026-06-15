@@ -23,9 +23,9 @@ This is the **Moore-Penrose pseudoinverse**. For our case ($J$ is
   such $\delta q$, it gives the minimum-norm one.
 - If $n_v < 6$ or $J$ has reduced row rank, the right-inverse formula
   fails (the matrix being inverted is singular). The general SVD-based
-  formula still works, but you need a separate code path.
+  formula still works, but it requires a separate code path.
 
-In practice, the moment we account for *singularities* — places where
+Once *singularities* are accounted for — places where
 the smallest singular value of $J$ approaches zero — even the
 "full-rank" case needs care, because $(J J^\top)^{-1}$ has huge
 condition number.
@@ -60,8 +60,8 @@ J^+_\lambda \;:=\; J^\top \bigl(J J^\top + \lambda^2 I_6\bigr)^{-1}.
 $$
 
 This is the **damped pseudoinverse**, the Nakamura-Hanafusa /
-Wampler-1986 / Levenberg-Marquardt formulation depending on whose
-notation you read.
+Wampler-1986 / Levenberg-Marquardt formulation depending on the
+notation in use.
 
 Why it works:
 
@@ -74,7 +74,7 @@ Why it works:
   step.
 - The transition is smooth.
 
-You can derive DLS as the solution to a *regularised* least-squares
+DLS can be derived as the solution to a *regularised* least-squares
 problem:
 
 $$
@@ -101,13 +101,13 @@ Smarter strategies:
   singular value independently based on its proximity to zero. More
   surgical, but requires an SVD per iteration.
 
-The library uses constant damping for simplicity. If you find a
+The library uses constant damping for simplicity. When a
 particular robot needs more sophistication, Wampler is the easy
 upgrade.
 
-## Implementation: how to compute the damped step without forming $J^+$
+## Implementation: computing the damped step without forming $J^+$
 
-You almost never want to *form* $J^+_\lambda$ explicitly — it's a
+There is rarely a reason to *form* $J^+_\lambda$ explicitly — it's a
 dense $n_v \times 6$ matrix. Instead, solve the 6 × 6 linear system:
 
 ```cpp
@@ -134,10 +134,10 @@ The damped least-squares step can be read in two equivalent ways:
    it becomes (a scaled version of) gradient descent on the squared
    error.
 
-The second reading is the one I keep coming back to. DLS gives you
+The second reading is the more useful one. DLS gives
 *Newton-like* convergence when things are well-conditioned, and falls
-back to a *guaranteed-descent* step when they aren't. That's exactly
-the kind of robustness you want from a default IK solver.
+back to a *guaranteed-descent* step when they aren't. That is exactly
+the kind of robustness a default IK solver requires.
 
 > ## Where this lives in the library
 >

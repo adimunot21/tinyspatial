@@ -1,12 +1,12 @@
 # The inverse problem
 
-You have a robot at configuration $q$. You can call `forward_kinematics`
-and it tells you where every link of the robot is. Now reverse the
-direction:
+Consider a robot at configuration $q$. A call to `forward_kinematics`
+reports where every link of the robot is. Inverse kinematics reverses
+the direction:
 
-> *"Move the hand to **here**. What joint angles do I need?"*
+> *"Move the hand to **here**. What joint angles achieve it?"*
 
-That's inverse kinematics. Let's make the statement precise.
+That is inverse kinematics. The statement can be made precise.
 
 ## The formal problem
 
@@ -30,14 +30,14 @@ general:
 So "the" solution might be one of many, or might not exist at all. Real
 IK code has to be honest about this.
 
-## Why we don't just solve it algebraically
+## Why algebraic solutions are insufficient
 
 For a few special robots — *e.g.* the classical 6-DoF arm with a
-spherical wrist (Pieper conditions) — you can write down a closed-form
-solution by hand. It's pretty: a sequence of `atan2`s and square roots.
+spherical wrist (Pieper conditions) — a closed-form solution can be
+written by hand: a sequence of `atan2`s and square roots.
 
-But the moment the geometry deviates from those special structures
-(7-DoF, offset wrists, parallel axes), closed-form goes away. There's a
+The moment the geometry deviates from those special structures
+(7-DoF, offset wrists, parallel axes), closed-form goes away. There is a
 [whole research area](https://en.wikipedia.org/wiki/Inverse_kinematics)
 about polynomial-system-solving methods (the IKFast school, originally
 by Rosen Diankov), but those are heavyweight code generators, not
@@ -55,25 +55,25 @@ Start from some initial guess $q_0$. At each step:
    reduce the error.
 
 Repeat until the error is small enough. Each step is cheap (one FK call,
-one Jacobian, a small linear solve); we just do many of them.
+one Jacobian, a small linear solve); the cost is in doing many of them.
 
-This is Newton's method on a manifold. The next sub-chapter (02) tells
-you how to define the "error" and the "step" precisely — and the answer
-involves $\log_{\mathrm{SE}(3)}$, which you met in chapter 04.
+This is Newton's method on a manifold. The next sub-chapter (02) defines
+the "error" and the "step" precisely — and the answer
+involves $\log_{\mathrm{SE}(3)}$, introduced in chapter 04.
 
 ## Writing the error on SE(3)
 
-The hand pose is a rigid transform, not a vector. You can't just subtract
-$T_k$ from $T^*$ — that operation isn't defined on a Lie group. Instead,
+The hand pose is a rigid transform, not a vector. Subtracting
+$T_k$ from $T^*$ is not defined on a Lie group. Instead,
 the standard definition of the *body-frame* pose error is:
 
 $$
 e = \log_{\mathrm{SE}(3)}\!\bigl(T_k^{-1} \cdot T^*\bigr) \;\in\; \mathbb{R}^6.
 $$
 
-In words: ask "what twist would I have to apply to body $L$ in *its
-own frame* over unit time to take it from where it is to where it
-should be?" The answer is the Lie tangent — a 6-vector in
+In words: it is the twist that, applied to body $L$ in *its
+own frame* over unit time, takes it from where it is to where it
+should be. The answer is the Lie tangent — a 6-vector in
 angular-first ordering.
 
 Two properties make this the right definition:
@@ -81,7 +81,7 @@ Two properties make this the right definition:
 - **It's zero when $T_k = T^*$.** Obvious but important.
 - **It's locally linear in the configuration error.** If $q_k$ is close
   to $q^*$, then $e \approx J_L(q_k) \cdot (q^* - q_k)$, where
-  $J_L$ is the *local-frame* Jacobian (chapter 09). That's what lets
+  $J_L$ is the *local-frame* Jacobian (chapter 09). This is what lets
   Newton's method work.
 
 In code:
@@ -98,9 +98,9 @@ this library.
 ## What happens when the error is big
 
 The local linearisation isn't perfect. For large $e$ (say, the hand is
-30 cm from the target), the Newton step might *overshoot* — pushing the
+30 cm from the target), the Newton step may *overshoot* — pushing the
 hand past the target, possibly into a worse configuration. There are
-three classic tricks for handling this, in roughly increasing
+three classic techniques for handling this, in roughly increasing
 sophistication:
 
 1. **Step-size scaling.** Multiply $\Delta q$ by some $\alpha \in (0, 1]$.
@@ -110,8 +110,8 @@ sophistication:
 3. **Line search.** Compute multiple candidate $\Delta q$ magnitudes and
    pick the one that minimises the error along that direction.
 
-The library uses (1) and (2). (3) is occasionally worth adding if you
-have a hard convergence problem; it's not in `dls.hpp` because it would
+The library uses (1) and (2). (3) is occasionally worth adding for a
+hard convergence problem; it is not in `dls.hpp` because it would
 double the per-iteration FK count.
 
 > ## Where this lives in the library

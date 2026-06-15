@@ -5,18 +5,18 @@ joint in the tree:
 
 > **Child's world pose = parent's world pose · child's pose in parent.**
 
-Read it as: to know where the child is in the world, start at the parent (a
-problem you already solved), then walk over by whatever the joint between
-them is currently doing.
+Read it as: to locate the child in the world, start at the parent (an
+already-solved problem), then walk over by whatever the joint between them is
+currently doing.
 
 ## Two pieces per joint
 
 For joint `i`, the *child's pose in parent's frame* has two parts:
 
 1. **The static placement** `Model::placement[i]`. This is the joint's
-   resting position relative to its parent — it never depends on `q`. It's
-   what the `<origin>` of the URDF joint tag gave us. If you froze every
-   motor, this is what the kinematics would look like.
+   resting position relative to its parent — it never depends on `q`. It is
+   what the `<origin>` of the URDF joint tag supplied. With every motor frozen,
+   this is what the kinematics would look like.
 
 2. **The joint's motion** `joint_transform(joints[i], q_slice(i))`. A
    revolute joint at angle 1.5 rad becomes a rotation; a prismatic joint at
@@ -34,10 +34,10 @@ child's world pose. In the code we store it as `Data::pose_in_parent[i]`.
 
 ## Why "topological order" matters
 
-When you compute joint `i`, you assume joint `parent[i]`'s world pose is
-already known. That's only true if joints are listed in an order where every
-joint's parent comes before it. The `Model` invariant from chapter 06 —
-`parent[i] < i` — guarantees this. So the algorithm becomes:
+Computing joint `i` assumes joint `parent[i]`'s world pose is already known.
+That holds only if joints are listed in an order where every joint's parent
+comes before it. The `Model` invariant from chapter 06 — `parent[i] < i` —
+guarantees this. So the algorithm becomes:
 
 ```
 for i in 0 .. njoints - 1:

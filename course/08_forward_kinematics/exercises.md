@@ -1,6 +1,6 @@
 # Exercises — Chapter 08
 
-These exercises walk you through FK by hand and at the C++ level.
+These exercises work through FK by hand and at the C++ level.
 
 ## 1. Two joints, by hand
 
@@ -22,8 +22,8 @@ because the rotation about z at that point keeps the origin fixed in xy.
 ## 2. Why does FK only need one pass?
 
 Topological order means `parent[i] < i`. Why does that turn FK from a graph
-traversal into a single `for` loop? Could you have done it with a tree-of-
-pointers data structure? What would that cost you?
+traversal into a single `for` loop? Could the same be done with a tree-of-
+pointers data structure? What would that cost?
 
 ## 3. Add a third joint to simple_arm
 
@@ -40,8 +40,8 @@ Load it from C++ and verify:
 
 For each fixture URDF in `data/robots/`, run FK at `q = 0` and print the
 world position of the end-effector. Compare the values against the
-"cumulative reach" you'd expect from the link lengths in the URDF. Use this
-to sanity-check that your synthetic URDFs match your intent.
+"cumulative reach" expected from the link lengths in the URDF. This
+sanity-checks that the synthetic URDFs match their intent.
 
 (For `so_arm101`, the cumulative reach at `q = 0` is 0.462 m, as exercise 4 of
 chapter 07 already established.)
